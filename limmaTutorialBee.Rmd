@@ -47,7 +47,7 @@ Transform and remove low counts.
 ```{r}
 cpm <- cpm(x)
 lcpm <- cpm(x, log=TRUE)
-keep.exprs <- rowSums(cpm>1)>=96
+keep.exprs <- rowSums(cpm>1)>=8 # tried filtering up to 24 and not much difference
 x <- x[keep.exprs,, keep.lib.sizes=FALSE] # 15,314 to 10,626
 dim(x)
 x <- calcNormFactors(x, method = "TMM")
@@ -88,11 +88,35 @@ We can look at contrasts
 
 ```{r}
 contr.matrix <- makeContrasts(
-   NPvsVS = NP-VS, 
-   NPvsNC = NP-NC, 
-   VPvsVS = VP-VS, 
+   NCvsNP = NC-NP,
+   NCvsNR = NC-NR,
+   NCvsNS = NC-NS,
+   NCvsVC = NC-VC,
+   NCvsVP = NC-VP,
+   NCvsVR = NC-VR,
+   NCvsVS = NC-VS,
+   NPvsNR = NP-NR,
+   NPvsNS = NP-NS,
+   NPvsVC = NP-VC,
+   NPvsVP = NP-VP,
+   NPvsVR = NP-VR,
+   NPvsVS = NP-VS,
+   NRvsNS = NR-NS,
+   NRvsVC = NR-VC,
+   NRvsVP = NR-VP,
+   NRvsVR = NR-VR,
+   NRvsVS = NR-VS,
+   NSvsVC = NS-VC,
+   NSvsVP = NS-VP,
+   NSvsVR = NS-VR,
+   NSvsVS = NS-VS,
+   VCvsVP = VC-VP,
+   VCvsVR = VC-VR,
+   VCvsVS = VC-VS,
+   VPvsVR = VP-VR,
+   VPvsVS = VP-VS,
+   VRvsVS = VR-VS,
    levels = colnames(design))
-contr.matrix
 ```
 
 
