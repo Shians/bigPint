@@ -25,7 +25,6 @@ for (i in 1:(length(myLevels)-1)){
 
 # log
 dat[, 2:(ncol(dat)-2*length(myPairs))] <- log(dat[, 2:(ncol(dat)-2*length(myPairs))]+1)
-
 nCol = ncol(dat)
 datFCP = dat[,(nCol-2*length(myPairs)+1):nCol]
 
@@ -52,12 +51,9 @@ y2 = degData[[col1]]
 h <- hexbin(x=x, y=y, xbins=10, shape=3, IDs=TRUE, xbnds=c(xMin, xMax), ybnds=c(yMin, yMax))
 hexdf <- data.frame (hcell2xy (h),  hexID = h@cell, counts = h@count)
 
+pcpDat <- degData[, c(1, which(sapply(colnames(degData), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(group1, group2)))]
 
-pcpDat <- degData[, 1:(ncol(dat)-2*length(myPairs))] #log2+1
-
-colNms <- colnames(dat[, 2:(ncol(dat)-2*length(myPairs))])
-nVar <- length(2:(ncol(dat)-2*length(myPairs)))
-boxDat <- dat[, 1:(ncol(dat)-2*length(myPairs))] %>% gather(key, val, -c(ID))
+boxDat <- dat[, c(1, which(sapply(colnames(dat), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(group1, group2)))] %>% gather(key, val, -c(ID))
 colnames(boxDat)[2:3] <- c("Sample","Count")
 
 pcpDat2 <- pcpDat %>% gather(key, val, -c(ID))
@@ -66,6 +62,6 @@ colnames(pcpDat2) <- c("ID", "Sample", "Count")
 jpeg(filename=paste0(outDir, "/", group1, "_", group2, ".jpg"), height=700, width=1100)
 require(gridExtra)
 plot1 <- ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + coord_cartesian(xlim = c(xMin, xMax), ylim = c(yMin, yMax)) + geom_point(data=degData, aes(x=x2, y=y2), color = "red", size = 0.5, inherit.aes = FALSE) + xlab("log2(Fold change)") + ylab("-log10(p-value)")
-plot2 <- ggplot(boxDat, aes(x = Sample, y = Count)) + geom_boxplot() + geom_line(data=pcpDat2, aes(x = Sample, y = Count, group = ID), size = 0.3, color = "red") + theme(axis.text.x=element_text(angle=90, hjust=1))
+plot2 <- ggplot(boxDat, aes(x = Sample, y = Count)) + geom_boxplot() + geom_line(data=pcpDat2, aes(x = Sample, y = Count, group = ID), size = 0.1, color = "red", alpha = 0.5) + theme(axis.text.x=element_text(angle=90, hjust=1))
 grid.arrange(plot1, plot2, ncol=1)
 dev.off()
