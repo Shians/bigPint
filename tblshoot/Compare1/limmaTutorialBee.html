@@ -62,7 +62,8 @@
 <p>Try new paper (<a href="https://www.bioconductor.org/help/workflows/RNAseq123/" class="uri">https://www.bioconductor.org/help/workflows/RNAseq123/</a>)</p>
 <pre class="r"><code>library(limma)
 library(Glimma)
-library(edgeR)
+library(GGally)
+library(ggplot2)
 
 thisPath &lt;- &quot;/Users/lindz/bigPint&quot;
 beeCounts &lt;- read.delim(file=paste0(thisPath, &quot;/AllLaneCount.txt&quot;), row.names=1, stringsAsFactors = FALSE)
@@ -85,6 +86,12 @@ x &lt;- x[keep.exprs,, keep.lib.sizes=FALSE] # 15,314 to 10,626
 dim(x)</code></pre>
 <pre><code>[1] 10626    48</code></pre>
 <pre class="r"><code>x &lt;- calcNormFactors(x, method = &quot;TMM&quot;)</code></pre>
+<p>Make boxplots</p>
+<pre class="r"><code>ggparcoord(data.frame(x[[1]]), columns=1:48, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+<pre class="r"><code>ggparcoord(data.frame(log(x[[1]]/colMeans(x[[1]]))), columns=1:48, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
+<pre><code>Warning: Removed 2179 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-3-2.png" width="960" /></p>
 <p>Create MDS plots</p>
 <pre class="r"><code>library(RColorBrewer)
 lcpm &lt;- cpm(x, log=TRUE)
@@ -95,20 +102,17 @@ col.group &lt;- as.character(col.group)
 col.lane &lt;- lane
 levels(col.lane) &lt;-  brewer.pal(nlevels(col.lane), &quot;Set2&quot;)</code></pre>
 <pre><code>Warning in brewer.pal(nlevels(col.lane), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.lane &lt;- as.character(col.lane)
-plotMDS(lcpm, labels=group, col=col.group)</code></pre>
-<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-17-1.png" width="960" /></p>
-<pre class="r"><code>plotMDS(lcpm, labels=lane, col=col.lane, dim=c(3,4))</code></pre>
-<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-18-1.png" width="960" /></p>
-<pre class="r"><code>glMDSPlot(lcpm, labels=paste(group, lane, sep=&quot;_&quot;), groups=x$samples[,c(1,4)], launch=FALSE)
-
-#rows &lt;- which(x$samples$group %in% c(&quot;NP&quot;,&quot;VS&quot;))
-#glMDSPlot(lcpm[,rows], labels=paste(group, lane, sep=&quot;_&quot;), groups=x$samples[rows,c(1,4)], launch=TRUE)</code></pre>
+<pre class="r"><code>col.lane &lt;- as.character(col.lane)</code></pre>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.group)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.lane, dim=c(3,4))</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<pre class="r"><code>glMDSPlot(lcpm, labels=paste(group, lane, colnames(lcpm), sep=&quot;_&quot;), groups=x$samples[,c(1,4)], launch=FALSE)</code></pre>
 <p>Create design matrix. There are many ways to setup a design matrix. Here, we removed the intercept from group (the first factor), but kept the intercept from lane. This allows us to do contrasts with group more easily.</p>
 <pre class="r"><code>design &lt;- model.matrix(~0+group+lane)
-colnames(design) &lt;- gsub(&quot;group&quot;, &quot;&quot;, colnames(design))</code></pre>
-<p>We can look at contrasts</p>
-<pre class="r"><code>contr.matrix &lt;- makeContrasts(
+colnames(design) &lt;- gsub(&quot;group&quot;, &quot;&quot;, colnames(design))
+
+contr.matrix &lt;- makeContrasts(
    NCvsNP = NC-NP,
    NCvsNR = NC-NR,
    NCvsNS = NC-NS,
@@ -144,7 +148,7 @@ vfit &lt;- lmFit(v, design)
 vfit &lt;- contrasts.fit(vfit, contrasts=contr.matrix)
 efit &lt;- eBayes(vfit)
 plotSA(efit, main=&quot;Final model: Mean−variance trend&quot;)</code></pre>
-<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-22-1.png" width="960" /></p>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
 <p>For a quick look at differential expression levels, the number of significantly up- and down-regulated genes can be summarised in a table. Significance is defined using an adjusted p-value cutoff that is set at 5% by default. For the comparison between expression levels in basal and LP, 4,127 genes are found to be down-regulated in basal relative to LP and 4,298 genes are up-regulated in basal relative to LP – a total of 8,425 DE genes.</p>
 <pre class="r"><code>summary(decideTests(efit))</code></pre>
 <pre><code>   NCvsNP NCvsNR NCvsNS NCvsVC NCvsVP NCvsVR NCvsVS NPvsNR NPvsNS NPvsVC
@@ -175,28 +179,19 @@ summary(dt)</code></pre>
 -1      0      0      0      0      0      0      0      0
 0   10626  10626  10626  10626  10626  10626  10626  10626
 1       0      0      0      0      0      0      0      0</code></pre>
-<p>Genes that are DE in multiple comparisons can be extracted using the results from decideTests, where 0s represent genes that are not DE, 1s represent genes that are up-regulated, and -1s represent genes that are down-regulated. A total of 2,409 genes are DE in both basal versus LP and basal versus ML, twenty of which are listed below. The write.fit function can be used to extract and write results for all three comparisons to a single output file.</p>
-<pre class="r"><code>de.common &lt;- which(dt[,1]!=0 &amp; dt[,2]!=0)
-length(de.common)</code></pre>
-<pre><code>[1] 0</code></pre>
-<pre class="r"><code>head(tfit$genes$SYMBOL[de.common], n=20)</code></pre>
-<pre><code>NULL</code></pre>
-<pre class="r"><code>vennDiagram(dt[,1:2], circle.col=c(&quot;turquoise&quot;, &quot;salmon&quot;))</code></pre>
-<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-25-1.png" width="960" /></p>
-<p>We can examine genes from top to bottom</p>
-<pre class="r"><code>basal.vs.lp &lt;- topTreat(tfit, coef=1, n=Inf)
-basal.vs.ml &lt;- topTreat(tfit, coef=2, n=Inf)
-head(basal.vs.lp)
-head(basal.vs.ml)</code></pre>
-<p>To summarise results for all genes visually, mean-difference plots, which display log-FCs from the linear model fit against the average log-CPM values can be generated using the plotMD function, with the differentially expressed genes highlighted.</p>
-<pre class="r"><code>plotMD(tfit, column=1, status=dt[,1], main=colnames(tfit)[1], xlim=c(-8,13))</code></pre>
-<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-27-1.png" width="960" /></p>
-<p>A heatmap is created for the top 100 DE genes (as ranked by adjusted p-value) from the basal versus LP contrast using the heatmap.2 function from the gplots package. The heatmap correctly clusters samples into cell type and rearranges the order of genes to form blocks of similar expression. From the heatmap, we observe that the expression of ML and LP samples are very similar for the top 100 DE genes between basal and LP.</p>
-<pre class="r"><code>library(gplots)
-basal.vs.lp.topgenes &lt;- basal.vs.lp$ENTREZID[1:100]
-i &lt;- which(v$genes$ENTREZID %in% basal.vs.lp.topgenes)
-mycol &lt;- colorpanel(1000,&quot;blue&quot;,&quot;white&quot;,&quot;red&quot;)
-heatmap.2(v$E[i,], scale=&quot;row&quot;, labRow=v$genes$SYMBOL[i], labCol=group, col=mycol, trace=&quot;none&quot;, density.info=&quot;none&quot;, margin=c(8,6), lhei=c(2,10), dendrogram=&quot;column&quot;)</code></pre>
+<pre class="r"><code>pairNames &lt;- colnames(contr.matrix)
+topGenes &lt;- list()
+genePval &lt;- list()
+for (i in 1:length(pairNames)) {
+  temp &lt;- topTreat(efit, coef=i, n=Inf)
+  sigRows &lt;- which(temp$adj.P.Val&lt;0.05)
+  topGenes[[ pairNames[i] ]] &lt;- temp[sigRows,]
+  genePval[[ pairNames[i] ]] &lt;- temp
+}</code></pre>
+<p>Save the data</p>
+<pre class="r"><code>saveRDS(topGenes, file=&quot;topGenes_limma.Rds&quot;)
+saveRDS(genePval, file=&quot;genePval_limma.Rds&quot;)
+saveRDS(x, file=&quot;data_limma.Rds&quot;)</code></pre>
 
 
       </div>

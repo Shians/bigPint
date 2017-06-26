@@ -25,7 +25,8 @@ Try new paper (https://www.bioconductor.org/help/workflows/RNAseq123/)
 ```{r}
 library(limma)
 library(Glimma)
-library(edgeR)
+library(GGally)
+library(ggplot2)
 
 thisPath <- "/Users/lindz/bigPint"
 beeCounts <- read.delim(file=paste0(thisPath, "/AllLaneCount.txt"), row.names=1, stringsAsFactors = FALSE)
@@ -43,7 +44,6 @@ x$samples$lane <- lane
 ```
 
 Transform and remove low counts.
-
 ```{r}
 cpm <- cpm(x)
 lcpm <- cpm(x, log=TRUE)
@@ -51,6 +51,13 @@ keep.exprs <- rowSums(cpm>1)>=8 # tried filtering up to 24 and not much differen
 x <- x[keep.exprs,, keep.lib.sizes=FALSE] # 15,314 to 10,626
 dim(x)
 x <- calcNormFactors(x, method = "TMM")
+```
+
+Make boxplots
+```{r}
+ggparcoord(data.frame(x[[1]]), columns=1:48, alphaLines=0, boxplot=TRUE, scale="globalminmax") + coord_flip()
+
+ggparcoord(data.frame(log(x[[1]]/colMeans(x[[1]]))), columns=1:48, alphaLines=0, boxplot=TRUE, scale="globalminmax") + coord_flip()
 ```
 
 Create MDS plots
@@ -64,6 +71,9 @@ col.group <- as.character(col.group)
 col.lane <- lane
 levels(col.lane) <-  brewer.pal(nlevels(col.lane), "Set2")
 col.lane <- as.character(col.lane)
+```
+
+```{r}
 plotMDS(lcpm, labels=colnames(lcpm), col=col.group)
 ```
 
@@ -72,21 +82,14 @@ plotMDS(lcpm, labels=colnames(lcpm), col=col.lane, dim=c(3,4))
 ```
 
 ```{r}
-glMDSPlot(lcpm, labels=paste(group, lane, sep="_"), groups=x$samples[,c(1,4)], launch=FALSE)
-
-#rows <- which(x$samples$group %in% c("NP","VS"))
-#glMDSPlot(lcpm[,rows], labels=paste(group, lane, sep="_"), groups=x$samples[rows,c(1,4)], launch=TRUE)
+glMDSPlot(lcpm, labels=paste(group, lane, colnames(lcpm), sep="_"), groups=x$samples[,c(1,4)], launch=FALSE)
 ```
 
 Create design matrix. There are many ways to setup a design matrix. Here, we removed the intercept from group (the first factor), but kept the intercept from lane. This allows us to do contrasts with group more easily.
 ```{r}
 design <- model.matrix(~0+group+lane)
 colnames(design) <- gsub("group", "", colnames(design))
-```
 
-We can look at contrasts
-
-```{r}
 contr.matrix <- makeContrasts(
    NCvsNP = NC-NP,
    NCvsNR = NC-NR,
@@ -119,7 +122,6 @@ contr.matrix <- makeContrasts(
    levels = colnames(design))
 ```
 
-
 ```{r}
 par(mfrow=c(1,2))
 v <- voom(x, design, plot=TRUE)
@@ -143,37 +145,46 @@ dt <- decideTests(tfit)
 summary(dt)
 ```
 
-Genes that are DE in multiple comparisons can be extracted using the results from decideTests, where 0s represent genes that are not DE, 1s represent genes that are up-regulated, and -1s represent genes that are down-regulated. A total of 2,409 genes are DE in both basal versus LP and basal versus ML, twenty of which are listed below. The write.fit function can be used to extract and write results for all three comparisons to a single output file.
+```{r}
+pairNames <- colnames(contr.matrix)
+topGenes <- list()
+genePval <- list()
+for (i in 1:length(pairNames)) {
+  temp <- topTreat(efit, coef=i, n=Inf)
+  sigRows <- which(temp$adj.P.Val<0.05)
+  topGenes[[ pairNames[i] ]] <- temp[sigRows,]
+  genePval[[ pairNames[i] ]] <- temp
+}
+```
+
+Save the data
 
 ```{r}
+saveRDS(topGenes, file="topGenes_limma.Rds")
+saveRDS(genePval, file="genePval_limma.Rds")
+saveRDS(x, file="data_limma.Rds")
+```
+
+```{r, eval=FALSE, echo=FALSE}
+# Genes that are DE in multiple comparisons can be extracted using the results from decideTests, where 0s represent genes that are not DE, 1s represent genes that are up-regulated, and -1s represent genes that are down-regulated. A total of 2,409 genes are DE in both basal versus LP and basal versus ML, twenty of which are listed below. The write.fit function can be used to extract and write results for all three comparisons to a single output file.
 de.common <- which(dt[,1]!=0 & dt[,2]!=0)
 length(de.common)
 head(tfit$genes$SYMBOL[de.common], n=20)
 vennDiagram(dt[,1:2], circle.col=c("turquoise", "salmon"))
-```
 
-We can examine genes from top to bottom
-
-```{r, eval=FALSE}
+# We can examine genes from top to bottom
 basal.vs.lp <- topTreat(tfit, coef=1, n=Inf)
 basal.vs.ml <- topTreat(tfit, coef=2, n=Inf)
 head(basal.vs.lp)
 head(basal.vs.ml)
-```
 
-To summarise results for all genes visually, mean-difference plots, which display log-FCs from the linear model fit against the average log-CPM values can be generated using the plotMD function, with the differentially expressed genes highlighted.
-
-```{r}
+# To summarise results for all genes visually, mean-difference plots, which display log-FCs from the linear model fit against the average log-CPM values can be generated using the plotMD function, with the differentially expressed genes highlighted.
 plotMD(tfit, column=1, status=dt[,1], main=colnames(tfit)[1], xlim=c(-8,13))
-```
 
-A heatmap is created for the top 100 DE genes (as ranked by adjusted p-value) from the basal versus LP contrast using the heatmap.2 function from the gplots package. The heatmap correctly clusters samples into cell type and rearranges the order of genes to form blocks of similar expression. From the heatmap, we observe that the expression of ML and LP samples are very similar for the top 100 DE genes between basal and LP.
-
-```{r, eval=FALSE}
+# A heatmap is created for the top 100 DE genes (as ranked by adjusted p-value) from the basal versus LP contrast using the heatmap.2 function from the gplots package. The heatmap correctly clusters samples into cell type and rearranges the order of genes to form blocks of similar expression. From the heatmap, we observe that the expression of ML and LP samples are very similar for the top 100 DE genes between basal and LP.
 library(gplots)
 basal.vs.lp.topgenes <- basal.vs.lp$ENTREZID[1:100]
 i <- which(v$genes$ENTREZID %in% basal.vs.lp.topgenes)
 mycol <- colorpanel(1000,"blue","white","red")
 heatmap.2(v$E[i,], scale="row", labRow=v$genes$SYMBOL[i], labCol=group, col=mycol, trace="none", density.info="none", margin=c(8,6), lhei=c(2,10), dendrogram="column")
 ```
-
