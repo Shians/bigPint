@@ -14,8 +14,8 @@ library(ggplot2)
 library(DESeq2)
 library(tibble)
 
-dds <- readRDS("/Users/lindz/bigPint/tblshoot/data_limma.Rds")
-rld <- readRDS("/Users/lindz/bigPint/tblshoot/topGenes_limma.Rds")
+dds <- readRDS("/Users/lindz/bigPint/tblshoot/Compare1/data_limma.Rds")
+rld <- readRDS("/Users/lindz/bigPint/tblshoot/Compare1/topGenes_limma.Rds")
 
 myPairs <- levels(dds[[2]]$group)
 
