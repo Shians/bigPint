@@ -1,0 +1,204 @@
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc" />
+
+    <meta name="author" content="Lindsay Rutter" />
+  
+  
+  <title>Limma Tutorial</title>
+
+    <script src="limmaTutorialBee_files/jquery-1.11.3/jquery.min.js"></script>
+  <link href="limmaTutorialBee_files/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="limmaTutorialBee_files/bootstrap-3.3.2/js/bootstrap.min.js"></script>
+  <script src="limmaTutorialBee_files/bootstrap-3.3.2/shim/html5shiv.min.js"></script>
+  <script src="limmaTutorialBee_files/bootstrap-3.3.2/shim/respond.min.js"></script>
+  <link href="limmaTutorialBee_files/highlight-8.4/tomorrow.css" rel="stylesheet" />
+  <script src="limmaTutorialBee_files/highlight-8.4/highlight.pack.js"></script>
+  <link href="limmaTutorialBee_files/fontawesome-4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="limmaTutorialBee_files/stickykit-1.1.1/sticky-kit.min.js"></script>
+  <script src="limmaTutorialBee_files/jqueryeasing-1.3/jquery.easing.min.js"></script>
+  <link href="limmaTutorialBee_files/recliner-0.2.2/recliner.css" rel="stylesheet" />
+  <script src="limmaTutorialBee_files/recliner-0.2.2/recliner.min.js"></script>
+  <script src="limmaTutorialBee_files/recliner-0.2.2/onload.js"></script>
+  <link href="limmaTutorialBee_files/packagedocs-0.0.1/pd.css" rel="stylesheet" />
+  <script src="limmaTutorialBee_files/packagedocs-0.0.1/pd.js"></script>
+  <script src="limmaTutorialBee_files/packagedocs-0.0.1/pd-sticky-toc.js"></script>
+  
+  
+  
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+<body>
+
+  
+  <header class="navbar navbar-white navbar-fixed-top" role="banner" id="header">
+    <div class="container">
+      <div class="navbar-header">
+        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+                <a href="index.html" class="navbar-brand page-scroll">
+        Limma Tutorial
+        </a>
+      </div>
+          </div>
+  </header>
+
+  <!-- Begin Body -->
+  <div class="container">
+    <div class="row">
+            <div class="col-md-12">
+      
+<div id="content-top"></div>
+<p><meta http-equiv="content-type" content="text/html;charset=utf-8" /></p>
+<pre class="r"><code>library(limma)
+library(Glimma)
+library(GGally)
+library(ggplot2)
+library(plyr)
+
+comparison &lt;- 12
+countSample &lt;- 1
+numSample &lt;- 8
+outPath &lt;- paste0(&quot;/Users/lindz/bigPint/tblshoot/RemSamples/Compare&quot;, comparison)
+
+thisPath &lt;- &quot;/Users/lindz/bigPint&quot;
+beeCounts &lt;- read.delim(file=paste0(thisPath, &quot;/AllLaneCount.txt&quot;), row.names=1, stringsAsFactors = FALSE)
+colnames(beeCounts) &lt;- c(&quot;NC.1&quot;, &quot;NC.2&quot;, &quot;NR.1&quot;, &quot;VR.1&quot;, &quot;NS.1&quot;, &quot;VP.1&quot;, &quot;NS.2&quot;, &quot;VR.2&quot;, &quot;NP.1&quot;, &quot;VP.2&quot;, &quot;VC.1&quot;, &quot;NP.2&quot;, &quot;VP.3&quot;, &quot;NP.3&quot;, &quot;VS.1&quot;, &quot;VS.2&quot;, &quot;VC.2&quot;, &quot;NC.3&quot;, &quot;VP.4&quot;, &quot;NC.4&quot;, &quot;NR.2&quot;, &quot;VC.3&quot;, &quot;VC.4&quot;, &quot;NP.4&quot;, &quot;VR.3&quot;, &quot;NC.5&quot;, &quot;VS.3&quot;, &quot;NP.5&quot;, &quot;VC.5&quot;, &quot;VS.4&quot;, &quot;NS.3&quot;, &quot;VS.5&quot;, &quot;VP.5&quot;, &quot;NR.3&quot;, &quot;NR.4&quot;, &quot;VC.6&quot;, &quot;NS.4&quot;, &quot;NC.6&quot;, &quot;NP.6&quot;, &quot;VR.4&quot;, &quot;NR.5&quot;, &quot;NR.6&quot;, &quot;NS.5&quot;, &quot;VP.6&quot;, &quot;NS.6&quot;, &quot;VR.5&quot;, &quot;VR.6&quot;, &quot;VS.6&quot;)
+beeCounts &lt;- beeCounts[ , order(names(beeCounts))]
+beeCounts &lt;- beeCounts[ ,-comparison]
+
+x &lt;- DGEList(counts=beeCounts)
+
+group &lt;- factor(c(rep(&quot;NC&quot;,6), rep(&quot;NP&quot;,6), rep(&quot;NR&quot;,6), rep(&quot;NS&quot;,6), rep(&quot;VC&quot;,6), rep(&quot;VP&quot;,6), rep(&quot;VR&quot;,6), rep(&quot;VS&quot;,6)))
+lane &lt;- as.factor(c(&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L12&quot;,&quot;L12&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;,&quot;L34&quot;))
+day &lt;- as.factor(c(&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;,&quot;2&quot;,&quot;2&quot;,&quot;2&quot;,&quot;2&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;2&quot;))
+
+group &lt;- group[-comparison]
+lane &lt;- lane[-comparison]
+day &lt;- day[-comparison]
+
+x$samples$group &lt;- group
+x$samples$lane &lt;- lane
+x$samples$day &lt;- day</code></pre>
+<p>Transform and remove low counts. This time, try normalization first.</p>
+<pre class="r"><code>keep.exprs &lt;- rowSums(x[[1]]&gt;countSample)&gt;=numSample
+x &lt;- x[keep.exprs,, keep.lib.sizes=FALSE]
+x &lt;- calcNormFactors(x, method = &quot;TMM&quot;)
+libRatio &lt;- max(x[[2]]$lib.size)/min(x[[2]]$lib.size)
+rld &lt;- rlog(x[[1]])</code></pre>
+<p>Make boxplots</p>
+<pre class="r"><code>ggparcoord(data.frame(log(x[[1]]/colMeans(x[[1]]))), columns=1:47, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
+<pre><code>Warning: Removed 23305 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+<pre class="r"><code>ggparcoord(data.frame(rld), columns=1:47, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-3-2.png" width="960" /></p>
+<p>Create MDS plots</p>
+<pre class="r"><code>library(RColorBrewer)
+lcpm &lt;- cpm(x, log=TRUE)
+par(mfrow=c(1,2))
+col.group &lt;- group
+levels(col.group) &lt;-  brewer.pal(nlevels(col.group), &quot;Set1&quot;)
+col.group &lt;- as.character(col.group)
+col.lane &lt;- lane
+levels(col.lane) &lt;-  brewer.pal(nlevels(col.lane), &quot;Set2&quot;)</code></pre>
+<pre><code>Warning in brewer.pal(nlevels(col.lane), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+<pre class="r"><code>col.lane &lt;- as.character(col.lane)
+col.day &lt;- day
+levels(col.day) &lt;-  brewer.pal(nlevels(col.day), &quot;Set2&quot;)</code></pre>
+<pre><code>Warning in brewer.pal(nlevels(col.day), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+<pre class="r"><code>col.day &lt;- as.character(col.day)</code></pre>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.group)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.lane)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.day)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(rld, labels=colnames(lcpm), col=col.group)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(rld, labels=colnames(lcpm), col=col.lane)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
+<pre class="r"><code>plotMDS(rld, labels=colnames(lcpm), col=col.day)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
+<pre class="r"><code>glMDSPlot(lcpm, labels=paste(group, lane, day, colnames(lcpm), sep=&quot;_&quot;), groups=x$samples[,c(1,4,5)], launch=FALSE)</code></pre>
+<p>Create design matrix. There are many ways to setup a design matrix. Here, we removed the intercept from group (the first factor), but kept the intercept from lane. This allows us to do contrasts with group more easily.</p>
+<pre class="r"><code>design &lt;- model.matrix(~0+group+lane)
+colnames(design) &lt;- gsub(&quot;group&quot;, &quot;&quot;, colnames(design))
+
+contr.matrix &lt;- makeContrasts(
+   NCvsNP = NC-NP,
+   NCvsNR = NC-NR,
+   NCvsNS = NC-NS,
+   NCvsVC = NC-VC,
+   NCvsVP = NC-VP,
+   NCvsVR = NC-VR,
+   NCvsVS = NC-VS,
+   NPvsNR = NP-NR,
+   NPvsNS = NP-NS,
+   NPvsVC = NP-VC,
+   NPvsVP = NP-VP,
+   NPvsVR = NP-VR,
+   NPvsVS = NP-VS,
+   NRvsNS = NR-NS,
+   NRvsVC = NR-VC,
+   NRvsVP = NR-VP,
+   NRvsVR = NR-VR,
+   NRvsVS = NR-VS,
+   NSvsVC = NS-VC,
+   NSvsVP = NS-VP,
+   NSvsVR = NS-VR,
+   NSvsVS = NS-VS,
+   VCvsVP = VC-VP,
+   VCvsVR = VC-VR,
+   VCvsVS = VC-VS,
+   VPvsVR = VP-VR,
+   VPvsVS = VP-VS,
+   VRvsVS = VR-VS,
+   levels = colnames(design))</code></pre>
+<pre class="r"><code>par(mfrow=c(1,2))
+v &lt;- voom(x, design, plot=TRUE)
+vfit &lt;- lmFit(v, design)
+vfit &lt;- contrasts.fit(vfit, contrasts=contr.matrix)
+efit &lt;- eBayes(vfit)
+plotSA(efit, main=&quot;Final model: Mean−variance trend&quot;)</code></pre>
+<p><img src="limmaTutorialBee_files/figure-html/unnamed-chunk-13-1.png" width="960" /></p>
+<pre class="r"><code>myDat &lt;- as.data.frame(summary(decideTests(efit)))
+myDat &lt;- myDat[which(myDat$Var1 %in% c(-1,1)),]
+allPairs &lt;- ddply(myDat, .(Var2), summarise, Freq=sum(Freq))</code></pre>
+<pre class="r"><code>numGenes &lt;- nrow(x[[1]])
+results &lt;- list()
+results[[&quot;libRatio&quot;]] &lt;- libRatio
+results[[&quot;countSample&quot;]] &lt;- countSample
+results[[&quot;numberSample&quot;]] &lt;- numSample
+results[[&quot;numGenes&quot;]] &lt;- numGenes
+results[[&quot;allPairs&quot;]] &lt;- allPairs</code></pre>
+<pre class="r"><code># Save data
+saveRDS(results, file=paste0(outPath, &quot;/results.Rds&quot;))</code></pre>
+
+
+      </div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div class="container">
+      <div class="col-md-6">
+              </div>
+      <div class="col-md-6">
+        <p class="pull-right">created with <a href="https://github.com/hafen/packagedocs">packagedocs</a>
+                  </p>
+      </div>
+    </div>
+  </div>
+
+  
+</body>
+</html>

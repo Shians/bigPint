@@ -65,55 +65,17 @@ library(Glimma)
 library(edgeR)
 library(Mus.musculus)</code></pre>
 <pre><code>Loading required package: AnnotationDbi</code></pre>
-<pre><code>Loading required package: stats4</code></pre>
-<pre><code>Loading required package: BiocGenerics</code></pre>
-<pre><code>Loading required package: parallel</code></pre>
 <pre><code>
-Attaching package: &#39;BiocGenerics&#39;</code></pre>
-<pre><code>The following objects are masked from &#39;package:parallel&#39;:
+Attaching package: &#39;AnnotationDbi&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:plotly&#39;:
 
-    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-    clusterExport, clusterMap, parApply, parCapply, parLapply,
-    parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
-<pre><code>The following object is masked from &#39;package:limma&#39;:
+    select</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
 
-    plotMA</code></pre>
-<pre><code>The following objects are masked from &#39;package:stats&#39;:
-
-    IQR, mad, xtabs</code></pre>
-<pre><code>The following objects are masked from &#39;package:base&#39;:
-
-    anyDuplicated, append, as.data.frame, cbind, colnames,
-    do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-    grepl, intersect, is.unsorted, lapply, lengths, Map, mapply,
-    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
-    Position, rank, rbind, Reduce, rownames, sapply, setdiff,
-    sort, table, tapply, union, unique, unsplit, which, which.max,
-    which.min</code></pre>
-<pre><code>Loading required package: Biobase</code></pre>
-<pre><code>Welcome to Bioconductor
-
-    Vignettes contain introductory material; view with
-    &#39;browseVignettes()&#39;. To cite Bioconductor, see
-    &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
-<pre><code>Loading required package: IRanges</code></pre>
-<pre><code>Warning: package &#39;IRanges&#39; was built under R version 3.3.3</code></pre>
-<pre><code>Loading required package: S4Vectors</code></pre>
-<pre><code>Warning: package &#39;S4Vectors&#39; was built under R version 3.3.3</code></pre>
-<pre><code>
-Attaching package: &#39;S4Vectors&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:gplots&#39;:
-
-    space</code></pre>
-<pre><code>The following objects are masked from &#39;package:base&#39;:
-
-    colMeans, colSums, expand.grid, rowMeans, rowSums</code></pre>
+    select</code></pre>
 <pre><code>Loading required package: OrganismDbi</code></pre>
 <pre><code>Loading required package: GenomicFeatures</code></pre>
 <pre><code>Warning: package &#39;GenomicFeatures&#39; was built under R version 3.3.3</code></pre>
-<pre><code>Loading required package: GenomeInfoDb</code></pre>
-<pre><code>Loading required package: GenomicRanges</code></pre>
-<pre><code>Warning: package &#39;GenomicRanges&#39; was built under R version 3.3.3</code></pre>
 <pre><code>No methods found in &quot;RSQLite&quot; for requests: dbGetQuery</code></pre>
 <pre><code>Loading required package: GO.db</code></pre>
 <pre><code></code></pre>
@@ -226,7 +188,7 @@ plotMDS(lcpm, labels=group, col=col.group)
 title(main=&quot;A. Sample groups&quot;)
 plotMDS(lcpm, labels=lane, col=col.lane, dim=c(3,4))
 title(main=&quot;B. Sequencing lanes&quot;)</code></pre>
-<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-23-1.png" width="960" /></p>
 <pre class="r"><code>#glMDSPlot(lcpm, labels=paste(group, lane, sep=&quot;_&quot;), groups=x$samples[,c(2,5)], launch=FALSE)</code></pre>
 <p>Create design matrix. There are many ways to setup a design matrix. Here, we removed the intercept from group (the first factor), but kept the intercept from lane. This allows us to do contrasts with group more easily.</p>
 <pre class="r"><code>design &lt;- model.matrix(~0+group+lane)
@@ -325,7 +287,7 @@ attr(,&quot;contrasts&quot;)$lane
 vfit &lt;- contrasts.fit(vfit, contrasts=contr.matrix)
 efit &lt;- eBayes(vfit)
 plotSA(efit, main=&quot;Final model: Mean−variance trend&quot;)</code></pre>
-<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
+<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-26-1.png" width="960" /></p>
 <p>For a quick look at differential expression levels, the number of significantly up- and down-regulated genes can be summarised in a table. Significance is defined using an adjusted p-value cutoff that is set at 5% by default. For the comparison between expression levels in basal and LP, 4,127 genes are found to be down-regulated in basal relative to LP and 4,298 genes are up-regulated in basal relative to LP – a total of 8,425 DE genes.</p>
 <pre class="r"><code>summary(decideTests(efit))</code></pre>
 <pre><code>   BasalvsLP BasalvsML LPvsML
@@ -351,7 +313,7 @@ length(de.common)</code></pre>
 [13] &quot;2010300C02Rik&quot; &quot;Aff3&quot;          &quot;Npas2&quot;         &quot;Tbc1d8&quot;       
 [17] &quot;Creg2&quot;         &quot;Il1r1&quot;         &quot;Il18r1&quot;        &quot;Il18rap&quot;      </code></pre>
 <pre class="r"><code>vennDiagram(dt[,1:2], circle.col=c(&quot;turquoise&quot;, &quot;salmon&quot;))</code></pre>
-<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
+<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-29-1.png" width="960" /></p>
 <p>We can examine genes from top to bottom</p>
 <pre class="r"><code>basal.vs.lp &lt;- topTreat(tfit, coef=1, n=Inf)
 basal.vs.ml &lt;- topTreat(tfit, coef=2, n=Inf)
@@ -387,14 +349,14 @@ head(basal.vs.lp)</code></pre>
 15375  2.281914e-06</code></pre>
 <p>To summarise results for all genes visually, mean-difference plots, which display log-FCs from the linear model fit against the average log-CPM values can be generated using the plotMD function, with the differentially expressed genes highlighted.</p>
 <pre class="r"><code>plotMD(tfit, column=1, status=dt[,1], main=colnames(tfit)[1], xlim=c(-8,13))</code></pre>
-<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-12-1.png" width="960" /></p>
+<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-31-1.png" width="960" /></p>
 <p>A heatmap is created for the top 100 DE genes (as ranked by adjusted p-value) from the basal versus LP contrast using the heatmap.2 function from the gplots package. The heatmap correctly clusters samples into cell type and rearranges the order of genes to form blocks of similar expression. From the heatmap, we observe that the expression of ML and LP samples are very similar for the top 100 DE genes between basal and LP.</p>
 <pre class="r"><code>library(gplots)
 basal.vs.lp.topgenes &lt;- basal.vs.lp$ENTREZID[1:100]
 i &lt;- which(v$genes$ENTREZID %in% basal.vs.lp.topgenes)
 mycol &lt;- colorpanel(1000,&quot;blue&quot;,&quot;white&quot;,&quot;red&quot;)
 heatmap.2(v$E[i,], scale=&quot;row&quot;, labRow=v$genes$SYMBOL[i], labCol=group, col=mycol, trace=&quot;none&quot;, density.info=&quot;none&quot;, margin=c(8,6), lhei=c(2,10), dendrogram=&quot;column&quot;)</code></pre>
-<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-13-1.png" width="960" /></p>
+<p><img src="limmaTutorial_files/figure-html/unnamed-chunk-32-1.png" width="960" /></p>
 
 
       </div>
