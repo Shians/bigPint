@@ -9,25 +9,37 @@ library(data.table)
 library(ggplot2)
 library(tibble)
 
+set.seed(1)
+
 # Create data and subsets of data based on user selection of pairs
-dat <- data.frame(ID = paste0("ID", 1:10000), A.1 = c(10, rnorm(9999)), A.2 = c(10, rnorm(9999)), B.1 = c(6, rnorm(9999)), B.2 = c(6, rnorm(9999)), C.1 = c(-6, rnorm(9999)), C.2 = c(-6, rnorm(9999)), C.3 = c(-6, rnorm(9999)), stringsAsFactors = FALSE
+dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(10, rnorm(99)), A.2 = c(10, rnorm(99)), B.1 = c(6, rnorm(99)), B.2 = c(6, rnorm(99)), C.1 = c(-6, rnorm(99)), C.2 = c(-6, rnorm(99)), C.3 = c(-6, rnorm(99)), stringsAsFactors = FALSE
 )
 datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
 myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
+
+metrics <- list()
+for (i in 1:(length(myPairs)-1)){
+  for (j in (i+1):length(myPairs)){
+    metrics[[paste0(myPairs[i],"vs",myPairs[j])]] <- data.frame(ID = paste0("ID", 1:100), pValAdj = runif(100, 0, 1), logFC = runif(100, 0, 6), AveExp = runif(100, 0, 60))
+  }
+}
+
+myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 ui <- shinyUI(fluidPage(
   titlePanel("title panel"),
   sidebarLayout(
     position = "left",
     sidebarPanel(
-      selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE,
-                     options = list(maxItems = 2)),
+      selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+      selectInput("selMetric", "Metric:", choices = myMetrics),
       actionButton("goButton", "Go!"),
       width = 3
     ),
     mainPanel(
-      verbatimTextOutput("info"),
+      #verbatimTextOutput("info"),
       verbatimTextOutput("info2"),
+      verbatimTextOutput("info3"),      
       plotlyOutput("scatMatPlot")
     )
   )
@@ -38,6 +50,7 @@ server <- shinyServer(function(input, output, session) {
   geneNum <- reactiveValues(x=0)
   observeEvent(input$goButton, geneNum$x <- geneNum$x + 1)
   observeEvent(input$selPair, geneNum$x <- 0)
+  observeEvent(input$selMetric, geneNum$x <- 0)
   
   # Create data subset based on two letters user chooses
   datSel <- eventReactive(input$selPair, {
@@ -83,7 +96,7 @@ server <- shinyServer(function(input, output, session) {
   })
   
   # Output ID of selected row
-   output$info2 <- renderPrint({ geneNum$x })
+#   output$info2 <- renderPrint({ geneNum$x })
   
   # Output hex bin plot created just above
   output$scatMatPlot <- renderPlotly({
@@ -114,7 +127,24 @@ server <- shinyServer(function(input, output, session) {
   observe({
     #print(geneNum$x)
     # Get x and y values of selected row
-    currGene <- unname(unlist(datSel()[geneNum$x, -1]))
+    # BELOW ORDERING DOESN'T NEED TO BE RUN EVERY TIME!!!!
+    metricDF <- metrics[[paste0(input$selPair[1], "vs", input$selPair[2])]]
+    
+    if (!is.null(metricDF[[input$selMetric]])){
+      metricDF <- metricDF[order(metricDF[[input$selMetric]]),]
+    }
+
+    currMetric <- metricDF[geneNum$x, ]
+    currMetric$ID <- as.character(currMetric$ID)
+    currID <- currMetric$ID
+    
+    currGene <- unname(unlist(datSel()[which(datSel()$ID == currID), -1]))
+    
+    output$info2 <- renderPrint({ currMetric })
+    output$info3 <- renderPrint({ currGene })
+    
+    sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
+    sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
     
     geneX <- c()
     geneY <- c()
