@@ -27,6 +27,7 @@ ui <- shinyUI(fluidPage(
     ),
     mainPanel(
       verbatimTextOutput("info"),
+      verbatimTextOutput("info2"),
       plotlyOutput("scatMatPlot")
     )
   )
@@ -58,9 +59,6 @@ server <- shinyServer(function(input, output, session) {
     maxRange = c(minVal, maxVal)
     xbins=7
     buffer = (maxRange[2]-maxRange[1])/(xbins/2)
-    #x = unlist(datSel()[,(sampleIndex1)])
-    #y = unlist(datSel()[,(sampleIndex2)])
-    
     x <- c()
     y <- c()
     for (i in 1:length(sampleIndex1)){
@@ -85,11 +83,11 @@ server <- shinyServer(function(input, output, session) {
   })
   
   # Output ID of selected row
-  # output$info <- renderPrint({ datSel()$ID[req(geneNum$x)] })
+   output$info2 <- renderPrint({ geneNum$x })
   
   # Output hex bin plot created just above
   output$scatMatPlot <- renderPlotly({
-    # Use onRender() function to draw x and y values of seleced row as orange point
+    # Use onRender() function to draw x and y values of selected row as orange point
     ggPS() %>% onRender("
       function(el, x, data) {
       noPoint = x.data.length;
@@ -99,8 +97,8 @@ server <- shinyServer(function(input, output, session) {
       }
       var Traces = [];
       var trace = {
-      x: drawPoints.slice(0, drawPoints.length/2),
-      y: drawPoints.slice(drawPoints.length/2, drawPoints.length),
+      x: drawPoints.geneX,
+      y: drawPoints.geneY,
       mode: 'markers',
       marker: {
       color: 'orange',
@@ -116,9 +114,19 @@ server <- shinyServer(function(input, output, session) {
   observe({
     #print(geneNum$x)
     # Get x and y values of selected row
-    currGene <- datSel()[geneNum$x, -1]
+    currGene <- unname(unlist(datSel()[geneNum$x, -1]))
+    
+    geneX <- c()
+    geneY <- c()
+    for (i in 1:length(sampleIndex1)){
+      for (j in 1:length(sampleIndex2)){
+        geneX <- c(geneX, currGene[sampleIndex1[i]-1])
+        geneY <- c(geneY, currGene[sampleIndex2[j]-1])
+      }
+    }
+    
     # Send x and y values of selected row into onRender() function
-    session$sendCustomMessage(type = "points", unname(unlist(currGene)))
+    session$sendCustomMessage(type = "points", message=list(geneX=geneX, geneY=geneY))
   })
   })
 
