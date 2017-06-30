@@ -101,8 +101,7 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     
-    h <- hexbin(x=x, y=y, xbins=xbins, shape=1, IDs=TRUE,
-                xbnds=maxRange, ybnds=maxRange)
+    h <- hexbin(x=x, y=y, xbins=xbins, shape=1, IDs=TRUE, xbnds=maxRange, ybnds=maxRange)
     hexdf <- data.frame (hcell2xy (h),  hexID = h@cell, counts = h@count)
     attr(hexdf, "cID") <- h@cID
     p <- ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) +
