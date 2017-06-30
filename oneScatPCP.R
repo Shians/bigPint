@@ -28,23 +28,24 @@ myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 ui <- shinyUI(fluidPage(
   #titlePanel("title panel"),
-  #sidebarLayout(
-  #  position = "left",
-    #sidebarPanel(
+  sidebarLayout(
+    position = "left",
+    sidebarPanel(
       selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
       selectInput("selMetric", "Metric:", choices = myMetrics),
-      selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),     
+      selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+      numericInput("binSize", "Hexagon size:", value = 10),
       actionButton("goButton", "Go!"),
-      #width = 3
-   # ),
-  #  mainPanel(
-      #verbatimTextOutput("info"),
+      width = 3
+    ),
+    mainPanel(
+      verbatimTextOutput("info"),
       verbatimTextOutput("info2"),
-      plotlyOutput("scatMatPlot", width = "100%", height = "400px", inline=FALSE), #="auto", ="100%", ="100px"
-      plotlyOutput("boxPlot")#,
-      #width = 9
-    #)
-  #)
+      plotlyOutput("scatMatPlot", width = "100%", height = "400px", inline=FALSE),
+      plotlyOutput("boxPlot"),
+      width = 9
+    )
+  )
 ))
 
 server <- shinyServer(function(input, output, session) {
@@ -53,7 +54,8 @@ server <- shinyServer(function(input, output, session) {
   observeEvent(input$goButton, geneNum$x <- geneNum$x + 1)
   observeEvent(input$selPair, geneNum$x <- 0)
   observeEvent(input$selMetric, geneNum$x <- 0)
-  observeEvent(input$selOrder, geneNum$x <- 0) 
+  observeEvent(input$selOrder, geneNum$x <- 0)
+  observeEvent(input$binSize, geneNum$x <- 0) 
 
   # Create data subset based on two letters user chooses
   datSel <- eventReactive(input$selPair, {
@@ -62,7 +64,7 @@ server <- shinyServer(function(input, output, session) {
     dat[,c(1, sampleIndex())]
   }, ignoreNULL = FALSE)
   
-  metricDF <- eventReactive(input$selPair, {
+  metricDF <- eventReactive(c(input$selPair, input$selMetric, input$selOrder), {
     metricDF <- metrics[[paste0(input$selPair[1], "vs", input$selPair[2])]]
     if (!is.null(metricDF[[input$selMetric]])){
       metricDF <- metricDF[order(metricDF[[input$selMetric]]),]
@@ -78,11 +80,9 @@ server <- shinyServer(function(input, output, session) {
   currGene <- eventReactive(currID(), {unname(unlist(datSel()[which(datSel()$ID == currID()), -1]))})
   
   output$info2 <- renderPrint({ currMetric() })
-
-  output$info <- renderPrint({str(datSel())})
   
   # Create background Plotly graph with hex binning all 100 rows of the two user-selected columns
-  ggPS <- eventReactive(datSel(), {
+  ggPS <- eventReactive(c(datSel(), input$binSize), {
     
     sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
     sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
@@ -90,7 +90,7 @@ server <- shinyServer(function(input, output, session) {
     minVal = min(datSel()[,-1])
     maxVal = max(datSel()[,-1])
     maxRange = c(minVal, maxVal)
-    xbins=7
+    xbins= input$binSize
     buffer = (maxRange[2]-maxRange[1])/(xbins/2)
     x <- c()
     y <- c()
@@ -162,8 +162,18 @@ server <- shinyServer(function(input, output, session) {
    output$boxPlot <- renderPlotly({
      nVar = reactive(ncol(datSel()))
      colNms <- reactive(colnames(datSel()[, c(2:nVar())]))
-     boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
-     BP <- reactive(ggplot(boxDat(), aes(x = key, y = val)) + geom_boxplot())
+     #boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
+     
+     boxDat <- eventReactive(datSel(), {
+       boxDat <- datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID))
+       colnames(boxDat) <- c("ID", "Sample", "Count")
+       boxDat
+     })
+                             
+     
+     output$info <- renderPrint({str(boxDat())})
+     
+     BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
      ggBP <- reactive(ggplotly(BP()))
 
      observe({
@@ -205,8 +215,6 @@ server <- shinyServer(function(input, output, session) {
        Plotly.addTraces(el.id, Traces);
        })
        }")})
-  
-  
   })
 
 shinyApp(ui, server)
