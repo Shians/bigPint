@@ -27,25 +27,24 @@ for (i in 1:(length(myPairs)-1)){
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 ui <- shinyUI(fluidPage(
-  titlePanel("title panel"),
-  sidebarLayout(
-    position = "left",
-    sidebarPanel(
+  #titlePanel("title panel"),
+  #sidebarLayout(
+  #  position = "left",
+    #sidebarPanel(
       selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
       selectInput("selMetric", "Metric:", choices = myMetrics),
       selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),     
       actionButton("goButton", "Go!"),
-      width = 3
-    ),
-    mainPanel(
+      #width = 3
+   # ),
+  #  mainPanel(
       #verbatimTextOutput("info"),
-      #verbatimTextOutput("info2"),
-      verbatimTextOutput("info3"),
-      verbatimTextOutput("info10"),      
-      plotlyOutput("scatMatPlot")#,
-      #plotlyOutput("boxPlot")
-    )
-  )
+      verbatimTextOutput("info2"),
+      plotlyOutput("scatMatPlot", width = "100%", height = "400px", inline=FALSE), #="auto", ="100%", ="100px"
+      plotlyOutput("boxPlot")#,
+      #width = 9
+    #)
+  #)
 ))
 
 server <- shinyServer(function(input, output, session) {
@@ -63,6 +62,23 @@ server <- shinyServer(function(input, output, session) {
     dat[,c(1, sampleIndex())]
   }, ignoreNULL = FALSE)
   
+  metricDF <- eventReactive(input$selPair, {
+    metricDF <- metrics[[paste0(input$selPair[1], "vs", input$selPair[2])]]
+    if (!is.null(metricDF[[input$selMetric]])){
+      metricDF <- metricDF[order(metricDF[[input$selMetric]]),]
+      if (input$selOrder == "Decreasing"){
+        metricDF <- metricDF[order(-metricDF[[input$selMetric]]),]
+      }
+    }
+    metricDF
+  })
+  
+  currMetric <- eventReactive(geneNum$x, {metricDF()[geneNum$x, ]})
+  currID <- eventReactive(currMetric(), {as.character(currMetric()$ID)})
+  currGene <- eventReactive(currID(), {unname(unlist(datSel()[which(datSel()$ID == currID()), -1]))})
+  
+  output$info2 <- renderPrint({ currMetric() })
+
   output$info <- renderPrint({str(datSel())})
   
   # Create background Plotly graph with hex binning all 100 rows of the two user-selected columns
@@ -128,25 +144,6 @@ server <- shinyServer(function(input, output, session) {
   observe({
     #print(geneNum$x)
     # Get x and y values of selected row
-    # BELOW ORDERING DOESN'T NEED TO BE RUN EVERY TIME!!!!
-    metricDF <- metrics[[paste0(input$selPair[1], "vs", input$selPair[2])]]
-    
-    if (!is.null(metricDF[[input$selMetric]])){
-      metricDF <- metricDF[order(metricDF[[input$selMetric]]),]
-      if (input$selOrder == "Decreasing"){
-        metricDF <- metricDF[order(-metricDF[[input$selMetric]]),]
-      }
-    }
-
-    currMetric <- metricDF[geneNum$x, ]
-    currMetric$ID <- as.character(currMetric$ID)
-    currID <- currMetric$ID
-    
-    currGene <- unname(unlist(datSel()[which(datSel()$ID == currID), -1]))
-    
-    #output$info2 <- renderPrint({ currMetric })
-    output$info3 <- renderPrint({ currGene })
-    
     sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
     sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
     
@@ -154,31 +151,13 @@ server <- shinyServer(function(input, output, session) {
     geneY <- c()
     for (i in 1:length(sampleIndex1)){
       for (j in 1:length(sampleIndex2)){
-        geneX <- c(geneX, currGene[sampleIndex1[i]-1])
-        geneY <- c(geneY, currGene[sampleIndex2[j]-1])
+        geneX <- c(geneX, currGene()[sampleIndex1[i]-1])
+        geneY <- c(geneY, currGene()[sampleIndex2[j]-1])
       }
     }
-    
     # Send x and y values of selected row into onRender() function
     session$sendCustomMessage(type = "points", message=list(geneX=geneX, geneY=geneY))
   })
-  
-  
-  
-  
-  
-  #output$boxPlot <- renderPlotly({
-    # nVar = reactive(ncol(datSel()))
-    # colNms <- reactive(colnames(datSel()[, c(2:nVar())]))
-    # boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
-    # BP <- reactive(ggplot(boxDat(), aes(x = key, y = val)) + geom_boxplot())
-    # ggBP <- reactive(ggplotly(BP()))
-    # ggBP
-  #})
-  
-  
-  #output$info10 <- renderPrint({str(boxDat())})
-  
   
    output$boxPlot <- renderPlotly({
      nVar = reactive(ncol(datSel()))
@@ -188,7 +167,7 @@ server <- shinyServer(function(input, output, session) {
      ggBP <- reactive(ggplotly(BP()))
 
      observe({
-       session$sendCustomMessage(type = "lines", currGene)
+       session$sendCustomMessage(type = "lines", currGene())
      })
   
      ggBP() %>% onRender("
