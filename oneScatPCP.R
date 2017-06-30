@@ -39,9 +39,11 @@ ui <- shinyUI(fluidPage(
     ),
     mainPanel(
       #verbatimTextOutput("info"),
-      verbatimTextOutput("info2"),
-      #verbatimTextOutput("info3"),      
-      plotlyOutput("scatMatPlot")
+      #verbatimTextOutput("info2"),
+      verbatimTextOutput("info3"),
+      verbatimTextOutput("info10"),      
+      plotlyOutput("scatMatPlot")#,
+      #plotlyOutput("boxPlot")
     )
   )
 ))
@@ -97,9 +99,6 @@ server <- shinyServer(function(input, output, session) {
     ggPS
   })
   
-  # Output ID of selected row
-#   output$info2 <- renderPrint({ geneNum$x })
-  
   # Output hex bin plot created just above
   output$scatMatPlot <- renderPlotly({
     # Use onRender() function to draw x and y values of selected row as orange point
@@ -145,7 +144,7 @@ server <- shinyServer(function(input, output, session) {
     
     currGene <- unname(unlist(datSel()[which(datSel()$ID == currID), -1]))
     
-    output$info2 <- renderPrint({ currMetric })
+    #output$info2 <- renderPrint({ currMetric })
     output$info3 <- renderPrint({ currGene })
     
     sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
@@ -163,6 +162,72 @@ server <- shinyServer(function(input, output, session) {
     # Send x and y values of selected row into onRender() function
     session$sendCustomMessage(type = "points", message=list(geneX=geneX, geneY=geneY))
   })
+  
+  
+  
+  
+  
+  #output$boxPlot <- renderPlotly({
+    # nVar = reactive(ncol(datSel()))
+    # colNms <- reactive(colnames(datSel()[, c(2:nVar())]))
+    # boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
+    # BP <- reactive(ggplot(boxDat(), aes(x = key, y = val)) + geom_boxplot())
+    # ggBP <- reactive(ggplotly(BP()))
+    # ggBP
+  #})
+  
+  
+  #output$info10 <- renderPrint({str(boxDat())})
+  
+  
+   output$boxPlot <- renderPlotly({
+     nVar = reactive(ncol(datSel()))
+     colNms <- reactive(colnames(datSel()[, c(2:nVar())]))
+     boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
+     BP <- reactive(ggplot(boxDat(), aes(x = key, y = val)) + geom_boxplot())
+     ggBP <- reactive(ggplotly(BP()))
+
+     observe({
+       session$sendCustomMessage(type = "lines", currGene)
+     })
+  
+     ggBP() %>% onRender("
+       function(el, x, data) {
+  
+       noPoint = x.data.length;
+  
+       function range(start, stop, step){
+       var a=[start], b=start;
+       while(b<stop){b+=step;a.push(b)}
+       return a;
+       };
+  
+       Shiny.addCustomMessageHandler('lines',
+       function(drawLines) {
+  
+       if (x.data.length > noPoint){
+       Plotly.deleteTraces(el.id, x.data.length-1);
+       }
+  
+       var dLength = drawLines.length
+  
+       var Traces = [];
+       var traceLine = {
+       x: range(1, dLength, 1),
+       y: drawLines,
+       mode: 'lines',
+       line: {
+       color: 'orange',
+       width: 1
+       },
+       opacity: 0.9,
+       }
+       Traces.push(traceLine);
+       Plotly.addTraces(el.id, Traces);
+       })
+       }")})
+  
+  
   })
 
 shinyApp(ui, server)
