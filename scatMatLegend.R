@@ -32,6 +32,8 @@ ggPS
 
 
 
+###### Creating legend for hex bins
+
 # https://stackoverflow.com/questions/8069837/is-there-a-built-in-way-to-do-a-logarithmic-color-scale-in-ggplot2
 require(ggplot2)
 n <- 1e5
@@ -41,5 +43,5 @@ p <- ggplot(df, aes(x = x, y = y)) + stat_binhex()
 my_breaks = c(2, 10, 50, 100, 200, 6000)
 p <- p + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend")
 
-
-
+ggPS <- ggplotly(p)
+ggPS

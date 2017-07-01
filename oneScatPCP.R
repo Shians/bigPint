@@ -41,7 +41,8 @@ ui <- shinyUI(fluidPage(
     mainPanel(
       verbatimTextOutput("info"),
       verbatimTextOutput("info2"),
-      plotlyOutput("scatMatPlot", width = "100%", height = "400px", inline=FALSE),
+      plotlyOutput("hexPlot", width = "100%", height = "400px", inline=FALSE),
+      plotlyOutput("scatterPlot", width = "100%", height = "400px", inline=FALSE),
       plotlyOutput("boxPlot"),
       width = 9
     )
@@ -81,9 +82,9 @@ server <- shinyServer(function(input, output, session) {
   
   output$info2 <- renderPrint({ currMetric() })
   
-  # Create background Plotly graph with hex binning all 100 rows of the two user-selected columns
-  ggPS <- eventReactive(c(datSel(), input$binSize), {
-    
+  # Output hex bin plot created just above
+  output$hexPlot <- renderPlotly({
+  
     sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
     sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
     
@@ -104,20 +105,11 @@ server <- shinyServer(function(input, output, session) {
     h <- hexbin(x=x, y=y, xbins=xbins, shape=1, IDs=TRUE, xbnds=maxRange, ybnds=maxRange)
     hexdf <- data.frame (hcell2xy (h),  hexID = h@cell, counts = h@count)
     attr(hexdf, "cID") <- h@cID
-    p <- ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) +
-      geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) +
-      coord_cartesian(xlim = c(maxRange[1]-1*buffer, maxRange[2]+buffer),
-                      ylim = c(maxRange[1]-1*buffer, maxRange[2]+buffer)) +
-      coord_equal(ratio = 1) +
-      labs(x = input$selPair[1], y = input$selPair[2])
-    ggPS <- ggplotly(p)
-    ggPS
-  })
-  
-  # Output hex bin plot created just above
-  output$scatMatPlot <- renderPlotly({
+    p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + coord_cartesian(xlim = c(maxRange[1]-1*buffer, maxRange[2]+buffer), ylim = c(maxRange[1]-1*buffer, maxRange[2]+buffer)) + coord_equal(ratio = 1) + labs(x = input$selPair[1], y = input$selPair[2]))
+    plotlyHex <- reactive(ggplotly(p()))
+
     # Use onRender() function to draw x and y values of selected row as orange point
-    ggPS() %>% onRender("
+    plotlyHex() %>% onRender("
       function(el, x, data) {
       noPoint = x.data.length;
       Shiny.addCustomMessageHandler('points', function(drawPoints) {
@@ -139,6 +131,49 @@ server <- shinyServer(function(input, output, session) {
       Plotly.addTraces(el.id, Traces);
       });}")
   })
+  
+  
+  output$scatterPlot <- renderPlotly({
+    
+    sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
+    sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
+    
+    x <- c()
+    y <- c()
+    for (i in 1:length(sampleIndex1)){
+      for (j in 1:length(sampleIndex2)){
+        x <- c(x, unlist(datSel()[,(sampleIndex1[i])]))
+        y <- c(y, unlist(datSel()[,(sampleIndex2[j])]))
+      }
+    }
+    
+    p2 <- reactive(qplot(x, y) + labs(x = input$selPair[1], y = input$selPair[2]))
+    plotlyScatter <- reactive(ggplotly(p2()))
+    
+    # Use onRender() function to draw x and y values of selected row as orange point
+    plotlyScatter() %>% onRender("
+      function(el, x, data) {
+      noPoint = x.data.length;
+      Shiny.addCustomMessageHandler('points', function(drawPoints) {
+      if (x.data.length > noPoint){
+      Plotly.deleteTraces(el.id, x.data.length-1);
+      }
+      var Traces = [];
+      var trace = {
+      x: drawPoints.geneX,
+      y: drawPoints.geneY,
+      mode: 'markers',
+      marker: {
+      color: 'orange',
+      size: 7
+      },
+      hoverinfo: 'none'
+      };
+      Traces.push(trace);
+      Plotly.addTraces(el.id, Traces);
+      });}")
+  })
+  
   
   observe({
     #print(geneNum$x)
@@ -169,9 +204,6 @@ server <- shinyServer(function(input, output, session) {
        boxDat
      })
                              
-     
-     output$info <- renderPrint({str(boxDat())})
-     
      BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
      ggBP <- reactive(ggplotly(BP()))
 
