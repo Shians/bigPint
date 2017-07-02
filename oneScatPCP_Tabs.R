@@ -27,20 +27,19 @@ for (i in 1:(length(myPairs)-1)){
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 ui <- shinyUI(fluidPage(
-  titlePanel("Observations of interest"),
+  titlePanel("Overlay cases of interest"),
   sidebarLayout(
     sidebarPanel(
       selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
       selectInput("selMetric", "Metric:", choices = myMetrics),
       selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
-      numericInput("binSize", "Hexagon size:", value = 10),
-      actionButton("goButton", "Go!")
+      actionButton("goButton", "Plot case!")
     ),
     mainPanel(
       tabsetPanel(
-        tabPanel("hexPlot", plotlyOutput("hexPlot")),
-        tabPanel("scatterPlot", plotlyOutput("scatterPlot")),
-        tabPanel("boxPlot", plotlyOutput("boxPlot"))
+        tabPanel("Binned scatterplot", plotlyOutput("hexPlot"), numericInput("binSize", "Hexagon size:", value = 10)),
+        tabPanel("Scatterplot", plotlyOutput("scatterPlot"), sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01)),
+        tabPanel("Parallel coordinate plot", plotlyOutput("boxPlot"))
       )
       #verbatimTextOutput("info"),
       #verbatimTextOutput("info2"),
@@ -108,7 +107,7 @@ server <- shinyServer(function(input, output, session) {
     my_breaks <- c(2, 4, 6, 8, 20, 1000)    
     p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend"))
     
-    plotlyHex <- reactive(ggplotly(p()) %>% layout(height = 400, width = 400))
+    plotlyHex <- reactive(ggplotly(p(), height = 400, width = 400))
 
     # Use onRender() function to draw x and y values of selected row as orange point
     plotlyHex() %>% onRender("
@@ -140,6 +139,11 @@ server <- shinyServer(function(input, output, session) {
     sampleIndex1 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[1]))
     sampleIndex2 <- which(sapply(colnames(datSel()), function(x) unlist(strsplit(x,"[.]"))[1]) %in% c(input$selPair[2]))
     
+    minVal = min(datSel()[,-1])
+    maxVal = max(datSel()[,-1])
+    maxRange = c(minVal, maxVal)
+    xbins= input$binSize
+    buffer = (maxRange[2]-maxRange[1])/(xbins/2)
     x <- c()
     y <- c()
     for (i in 1:length(sampleIndex1)){
@@ -148,9 +152,13 @@ server <- shinyServer(function(input, output, session) {
         y <- c(y, unlist(datSel()[,(sampleIndex2[j])]))
       }
     }
+    tempDF <- data.frame(x=x, y=y)
     
-    p2 <- reactive(qplot(x, y) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]))
-    plotlyScatter <- reactive(ggplotly(p2()) %>% layout(height = 400, width = 400))
+    #ggplot(mtcars, aes(x=wt, y=qsec)) + geom_point(alpha=0.5)
+    
+    p2 <- reactive(ggplot(tempDF, aes(x=x, y=y)) + geom_point(alpha = input$alpha) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) +  coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1))
+    
+    plotlyScatter <- reactive(ggplotly(p2(), height = 400, width = 400))
     
     # Use onRender() function to draw x and y values of selected row as orange point
     plotlyScatter() %>% onRender("
