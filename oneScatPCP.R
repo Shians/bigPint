@@ -12,7 +12,7 @@ library(tibble)
 set.seed(1)
 
 # Create data and subsets of data based on user selection of pairs
-dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(10, rnorm(99)), A.2 = c(10, rnorm(99)), B.1 = c(6, rnorm(99)), B.2 = c(6, rnorm(99)), C.1 = c(-6, rnorm(99)), C.2 = c(-6, rnorm(99)), C.3 = c(-6, rnorm(99)), stringsAsFactors = FALSE
+dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(1, abs(rnorm(99))), A.2 = c(1, abs(rnorm(99))), B.1 = c(1, abs(rnorm(99))), B.2 = c(1, abs(rnorm(99))), C.1 = c(1, abs(rnorm(99))), C.2 = c(1, abs(rnorm(99))), C.3 = c(1, abs(rnorm(99))), stringsAsFactors = FALSE
 )
 datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
 myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
@@ -39,11 +39,13 @@ ui <- shinyUI(fluidPage(
       width = 3
     ),
     mainPanel(
+      fluidRow(
+        column(6, plotlyOutput("hexPlot")),
+        column(3, plotlyOutput("scatterPlot"))
+      ),
+      plotlyOutput("boxPlot"),
       verbatimTextOutput("info"),
       verbatimTextOutput("info2"),
-      plotlyOutput("hexPlot", width = "100%", height = "400px", inline=FALSE),
-      plotlyOutput("scatterPlot", width = "100%", height = "400px", inline=FALSE),
-      plotlyOutput("boxPlot"),
       width = 9
     )
   )
@@ -105,8 +107,14 @@ server <- shinyServer(function(input, output, session) {
     h <- hexbin(x=x, y=y, xbins=xbins, shape=1, IDs=TRUE, xbnds=maxRange, ybnds=maxRange)
     hexdf <- data.frame (hcell2xy (h),  hexID = h@cell, counts = h@count)
     attr(hexdf, "cID") <- h@cID
-    p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + coord_cartesian(xlim = c(maxRange[1]-1*buffer, maxRange[2]+buffer), ylim = c(maxRange[1]-1*buffer, maxRange[2]+buffer)) + coord_equal(ratio = 1) + labs(x = input$selPair[1], y = input$selPair[2]))
-    plotlyHex <- reactive(ggplotly(p()))
+    
+    print(maxRange)
+    print(buffer)
+    
+    p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)) #+ coord_equal(ratio = 1))
+                    
+#coord_cartesian(xlim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer)), ylim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer))) + coord_fixed() + coord_equal(ratio = 1)) # + 
+    plotlyHex <- reactive(ggplotly(p())) #%>% layout(height = 800, width = 800))
 
     # Use onRender() function to draw x and y values of selected row as orange point
     plotlyHex() %>% onRender("
@@ -147,7 +155,7 @@ server <- shinyServer(function(input, output, session) {
       }
     }
     
-    p2 <- reactive(qplot(x, y) + labs(x = input$selPair[1], y = input$selPair[2]))
+    p2 <- reactive(qplot(x, y) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]))
     plotlyScatter <- reactive(ggplotly(p2()))
     
     # Use onRender() function to draw x and y values of selected row as orange point
@@ -196,8 +204,7 @@ server <- shinyServer(function(input, output, session) {
    output$boxPlot <- renderPlotly({
      nVar = reactive(ncol(datSel()))
      colNms <- reactive(colnames(datSel()[, c(2:nVar())]))
-     #boxDat <- reactive(datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID)))
-     
+
      boxDat <- eventReactive(datSel(), {
        boxDat <- datSel()[, c(1:nVar())] %>% gather(key, val, -c(ID))
        colnames(boxDat) <- c("ID", "Sample", "Count")
