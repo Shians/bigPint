@@ -12,8 +12,8 @@ library(tibble)
 set.seed(1)
 
 # Create data and subsets of data based on user selection of pairs
-dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(1, abs(rnorm(99))), A.2 = c(1, abs(rnorm(99))), B.1 = c(1, abs(rnorm(99))), B.2 = c(1, abs(rnorm(99))), C.1 = c(1, abs(rnorm(99))), C.2 = c(1, abs(rnorm(99))), C.3 = c(1, abs(rnorm(99))), stringsAsFactors = FALSE
-)
+dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(1, abs(rnorm(99))), A.2 = c(1, abs(rnorm(99))), B.1 = c(1, abs(rnorm(99))), B.2 = c(1, abs(rnorm(99))), C.1 = c(1, abs(rnorm(99))), C.2 = c(1, abs(rnorm(99))), C.3 = c(1, abs(rnorm(99))), stringsAsFactors = FALSE)
+#dat <- data.frame(ID = paste0("ID", 1:1010), A.1 = c(rep(0.5, 1000), abs(rnorm(10))), A.2 = c(rep(0.5, 1000), abs(rnorm(10))), B.1 = c(rep(0.5, 1000), abs(rnorm(10))), B.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.1 = c(rep(0.5, 1000), abs(rnorm(10))), C.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.3 = c(rep(0.5, 1000), abs(rnorm(10))), stringsAsFactors = FALSE)
 datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
 myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
 
@@ -40,12 +40,12 @@ ui <- shinyUI(fluidPage(
     ),
     mainPanel(
       fluidRow(
-        column(6, plotlyOutput("hexPlot")),
-        column(3, plotlyOutput("scatterPlot"))
+        column(6, plotlyOutput("hexPlot")) #,
+        #column(3, plotlyOutput("scatterPlot"))
       ),
-      plotlyOutput("boxPlot"),
-      verbatimTextOutput("info"),
-      verbatimTextOutput("info2"),
+      #plotlyOutput("boxPlot"),
+      #verbatimTextOutput("info"),
+      #verbatimTextOutput("info2"),
       width = 9
     )
   )
@@ -111,9 +111,11 @@ server <- shinyServer(function(input, output, session) {
     print(maxRange)
     print(buffer)
     
-    p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)) #+ coord_equal(ratio = 1))
-                    
-#coord_cartesian(xlim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer)), ylim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer))) + coord_fixed() + coord_equal(ratio = 1)) # + 
+    #p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)) #+ coord_equal(ratio = 1)) + coord_cartesian(xlim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer)), ylim = c((maxRange[1]-1*buffer), (maxRange[2]+buffer))) + coord_fixed() + coord_equal(ratio = 1))
+
+    my_breaks <- c(2, 4, 6, 8, 20, 1000)    
+    p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = input$selPair[1], y = input$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend"))
+    
     plotlyHex <- reactive(ggplotly(p())) #%>% layout(height = 800, width = 800))
 
     # Use onRender() function to draw x and y values of selected row as orange point
