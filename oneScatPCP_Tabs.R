@@ -27,24 +27,21 @@ for (i in 1:(length(myPairs)-1)){
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 ui <- shinyUI(fluidPage(
-  #titlePanel("title panel"),
+  titlePanel("Observations of interest"),
   sidebarLayout(
-    position = "left",
     sidebarPanel(
       selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
       selectInput("selMetric", "Metric:", choices = myMetrics),
       selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
       numericInput("binSize", "Hexagon size:", value = 10),
-      actionButton("goButton", "Go!"),
-      width = 2
+      actionButton("goButton", "Go!")
     ),
     mainPanel(
-      fluidRow(
-        column(5, plotlyOutput("hexPlot")),
-        column(5, plotlyOutput("scatterPlot"))#,
-        #width = 10
+      tabsetPanel(
+        tabPanel("hexPlot", plotlyOutput("hexPlot")),
+        tabPanel("scatterPlot", plotlyOutput("scatterPlot")),
+        tabPanel("boxPlot", plotlyOutput("boxPlot"))
       )
-      #plotlyOutput("boxPlot"),
       #verbatimTextOutput("info"),
       #verbatimTextOutput("info2"),
     )
@@ -209,7 +206,7 @@ server <- shinyServer(function(input, output, session) {
      })
                              
      BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
-     ggBP <- reactive(ggplotly(BP()))
+     ggBP <- reactive(ggplotly(BP(), width=600))
 
      observe({
        session$sendCustomMessage(type = "lines", currGene())
