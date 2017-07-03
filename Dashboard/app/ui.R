@@ -1,4 +1,10 @@
 library(shinydashboard)
+library(shiny)
+library(plotly)
+library(hexbin)
+library(htmlwidgets)
+library(dplyr)
+library(tidyr)
 
 set.seed(1)
 # Create data and subsets of data based on user selection of pairs
@@ -20,17 +26,17 @@ sidebar <- dashboardSidebar(
     menuItem("Binned scatterplot", tabName="hexPlot", selected=TRUE), # icon=icon("line-chart"),
     menuItem("Scatterplot", tabName = "scatterPlot"), # icon=icon("table")
     menuItem("Parallel coordinates", tabName = "boxPlot") # icon = icon("file-text-o")
-  ),
-  hr(),
-   fluidRow(
-     column(1),
-     column(10,
-      selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
-      selectInput("selMetric", "Metric:", choices = myMetrics),
-      selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
-      actionButton("goButton", "Plot case!")
-     )
-   )
+  )#,
+  #hr(),
+  # fluidRow(
+  #   column(1),
+  #   column(10,
+      # selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+      # selectInput("selMetric", "Metric:", choices = myMetrics),
+      # selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+      # actionButton("goButton", "Plot case!")
+  #   )
+  # )
 )
 
 body <- dashboardBody(
@@ -44,30 +50,34 @@ body <- dashboardBody(
         column(width = 4, 
          tabBox(width = NULL,
            tabPanel(h5("Case metrics"),
-              verbatimTextOutput("info2"))),
+              verbatimTextOutput("info")),
            tabPanel(h5("Plot metrics"),
-              numericInput("binSize", "Hexagon size:", value = 10)))),
+              selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+              selectInput("selMetric", "Metric:", choices = myMetrics),
+              selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+              numericInput("binSize", "Hexagon size:", value = 10),
+              actionButton("goButton", "Plot case!")))),
         column(width = 8,
-          box(width = NULL, plotOutput("hexPlot"), collapsible = TRUE, title = "Binned scatterplot", status = "primary", solidHeader = TRUE))),
+          box(width = NULL, plotlyOutput("hexPlot"), collapsible = TRUE, title = "Binned scatterplot", status = "primary", solidHeader = TRUE)))),
 
     tabItem(tabName = "scatterPlot",
-      fluidRow(
-        column(width = 4, 
-         tabBox(width = NULL,
-           tabPanel(h5("Case metrics"),
-              verbatimTextOutput("info2"))),
-           tabPanel(h5("Plot metrics"),
-              sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01)))),
-        column(width = 8,
-          box(width = NULL, plotOutput("scatterPlot"), collapsible = TRUE, title = "Scatterplot", status = "primary", solidHeader = TRUE))),    
+      #fluidRow(
+        #column(width = 4, 
+        # tabBox(width = NULL,
+        #   tabPanel(h5("Case metrics"),
+        #     verbatimTextOutput("info2"))),
+        #   tabPanel(h5("Plot metrics"),
+        #      sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01))),
+        #column(width = 8,
+          box(width = NULL, plotOutput("scatterPlot"), collapsible = TRUE, title = "Scatterplot", status = "primary", solidHeader = TRUE)),    
     
     tabItem(tabName = "boxPlot",
-      column(width = 4, 
-       tabBox(width = NULL,
-         tabPanel(h5("Case metrics"),
-            verbatimTextOutput("info2")))),
-        column(width = 8,
-          box(width = NULL, plotOutput("boxPlot"), collapsible = TRUE, title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE)))
+      #column(width = 4, 
+       #tabBox(width = NULL,
+      #   tabPanel(h5("Case metrics"),
+      #      verbatimTextOutput("info3")))),
+        #column(width = 8,
+          box(width = NULL, plotOutput("boxPlot"), collapsible = TRUE, title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))
   )
 )
 
