@@ -1,92 +1,78 @@
-
 library(shinydashboard)
+
+set.seed(1)
+# Create data and subsets of data based on user selection of pairs
+dat <- data.frame(ID = paste0("ID", 1:100), A.1 = c(1, abs(rnorm(99))), A.2 = c(1, abs(rnorm(99))), B.1 = c(1, abs(rnorm(99))), B.2 = c(1, abs(rnorm(99))), C.1 = c(1, abs(rnorm(99))), C.2 = c(1, abs(rnorm(99))), C.3 = c(1, abs(rnorm(99))), stringsAsFactors = FALSE)
+#dat <- data.frame(ID = paste0("ID", 1:1010), A.1 = c(rep(0.5, 1000), abs(rnorm(10))), A.2 = c(rep(0.5, 1000), abs(rnorm(10))), B.1 = c(rep(0.5, 1000), abs(rnorm(10))), B.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.1 = c(rep(0.5, 1000), abs(rnorm(10))), C.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.3 = c(rep(0.5, 1000), abs(rnorm(10))), stringsAsFactors = FALSE)
+datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
+myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
+metrics <- list()
+for (i in 1:(length(myPairs)-1)){
+  for (j in (i+1):length(myPairs)){
+    metrics[[paste0(myPairs[i],"vs",myPairs[j])]] <- data.frame(ID = paste0("ID", 1:100), pValAdj = runif(100, 0, 1), logFC = runif(100, 0, 6), AveExp = runif(100, 0, 60))
+  }
+}
+myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 
 sidebar <- dashboardSidebar(
   hr(),
   sidebarMenu(id="tabs",
-    menuItem("Plot", tabName="plot", icon=icon("line-chart"), selected=TRUE),
-    menuItem("Table", tabName = "table", icon=icon("table")),
-    menuItem("Codes",  icon = icon("file-text-o"),
-     menuSubItem("Mlxtran", tabName = "pkmodel", icon = icon("angle-right")),
-     menuSubItem("ui.R", tabName = "ui", icon = icon("angle-right")),
-     menuSubItem("server.R", tabName = "server", icon = icon("angle-right"))
-    ),
-    menuItem("ReadMe", tabName = "readme", icon=icon("mortar-board")),
-    menuItem("About", tabName = "about", icon = icon("question"))
+    menuItem("Binned scatterplot", tabName="hexPlot", selected=TRUE), # icon=icon("line-chart"),
+    menuItem("Scatterplot", tabName = "scatterPlot"), # icon=icon("table")
+    menuItem("Parallel coordinates", tabName = "boxPlot") # icon = icon("file-text-o")
   ),
   hr(),
-  conditionalPanel("input.tabs=='plot'",
    fluidRow(
      column(1),
      column(10,
-      checkboxInput("first", "First order", TRUE),
-      checkboxInput("zero", "Zero order", TRUE),
-      checkboxInput("al", "alpha order", FALSE),
-      checkboxInput("sequential", "Sequential (0-1)", FALSE),
-      checkboxInput("mixed", "Simultaneous (0-1)", FALSE),
-      checkboxInput("saturated", "Saturated", FALSE),
-      checkboxInput("legend", "Legend", TRUE)
+      selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+      selectInput("selMetric", "Metric:", choices = myMetrics),
+      selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+      actionButton("goButton", "Plot case!")
      )
    )
-  )
 )
 
 body <- dashboardBody(
   tabItems(
-    tabItem(tabName = "readme",
-      withMathJax(), 
-      includeMarkdown("readMe.Rmd")
-    ),
-    tabItem(tabName = "plot",
+    #tabItem(tabName = "readme",
+    #  withMathJax(), 
+    #  includeMarkdown("readMe.Rmd")
+    #),
+    tabItem(tabName = "hexPlot",
       fluidRow(
         column(width = 4, 
-         tabBox( width = NULL,
-           tabPanel(h5("parameters"),
-            conditionalPanel(condition="input.sequential=='1' | input.mixed=='1' | input.first=='1' | input.alpha=='1' ", sliderInput("ka", "ka:", value = 0.5, min = 0.1, max = 3, step=0.1)),
-            conditionalPanel(condition="input.sequential=='1' | input.mixed=='1' | input.zero=='1' ", sliderInput("Tk0", "Tk0:", value = 5, min = 0, max = 10, step=0.5)),
-            conditionalPanel(condition="input.al=='1'", sliderInput("alpha", "alpha:", value = 0.5, min = 0, max = 2, step=0.1)),
-            conditionalPanel(condition="input.sequential=='1' | input.mixed=='1' ", sliderInput("F0", "F0:", value = 0.5, min = 0, max = 1, step=0.1)),
-            conditionalPanel(condition="input.saturated=='1'",
-              sliderInput("Vm", "Vm:", value = 0.9, min = 0, max = 2, step=0.1),
-              sliderInput("Km", "Km:", value = 0.2, min = 0, max = 1, step=0.1)),
-            sliderInput("k", "k:", value = 0.1, min = 0, max = 2, step=0.05)),
-           tabPanel(h5("dosage"),
-              sliderInput("tfd", "Time of first dose:", value=0, min=0, max = 20, step=1),
-              sliderInput("nd", "Number of doses:", value=1, min=0, max = 10, step=1),
-              sliderInput("ii", "Interdose interval:", value = 9, min = 0.5, max = 15, step=0.5),
-              sliderInput("amt", "Amount:", value = 5, min = 0, max = 20, step=1))
-         )),
+         tabBox(width = NULL,
+           tabPanel(h5("Case metrics"),
+              verbatimTextOutput("info2"))),
+           tabPanel(h5("Plot metrics"),
+              numericInput("binSize", "Hexagon size:", value = 10)))),
         column(width = 8,
-         box(width = NULL, plotOutput("plot",height="500px"), collapsible = TRUE, title = "Plot", status = "primary", solidHeader = TRUE)))
-    ),
-    tabItem(tabName = "table",
-      box( width = NULL, status = "primary", solidHeader = TRUE, title="Table",                
-      downloadButton('downloadTable', 'Download'),
-      br(),br(),
-      tableOutput("table"))),
-    tabItem(tabName = "pkmodel",
-            box( width = NULL, status = "primary", solidHeader = TRUE, title="absorptionModel.txt",             downloadButton('downloadData1', 'Download'),
-            br(),br(),
-            pre(includeText("absorptionModel.txt"))
-            )
-    ),
-    tabItem(tabName = "ui",
-      box( width = NULL, status = "primary", solidHeader = TRUE, title="ui.R",
-        downloadButton('downloadData2', 'Download'),
-        br(),br(),
-        pre(includeText("ui.R")))),
-    tabItem(tabName = "server",
-      box( width = NULL, status = "primary", solidHeader = TRUE, title="server.R",
-        downloadButton('downloadData3', 'Download'),
-        br(),br(),
-        pre(includeText("server.R")))),
-    tabItem(tabName = "about", includeMarkdown("../../about/about.Rmd")
-    )
+          box(width = NULL, plotOutput("hexPlot"), collapsible = TRUE, title = "Binned scatterplot", status = "primary", solidHeader = TRUE))),
+
+    tabItem(tabName = "scatterPlot",
+      fluidRow(
+        column(width = 4, 
+         tabBox(width = NULL,
+           tabPanel(h5("Case metrics"),
+              verbatimTextOutput("info2"))),
+           tabPanel(h5("Plot metrics"),
+              sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01)))),
+        column(width = 8,
+          box(width = NULL, plotOutput("scatterPlot"), collapsible = TRUE, title = "Scatterplot", status = "primary", solidHeader = TRUE))),    
+    
+    tabItem(tabName = "boxPlot",
+      column(width = 4, 
+       tabBox(width = NULL,
+         tabPanel(h5("Case metrics"),
+            verbatimTextOutput("info2")))),
+        column(width = 8,
+          box(width = NULL, plotOutput("boxPlot"), collapsible = TRUE, title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE)))
   )
 )
 
 dashboardPage(
-  dashboardHeader(title = "Absorption processes"),
+  dashboardHeader(title = "Overlaying cases of interest"),
   sidebar,
   body
 )

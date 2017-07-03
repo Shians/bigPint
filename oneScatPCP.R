@@ -43,8 +43,8 @@ ui <- shinyUI(fluidPage(
         column(5, plotlyOutput("hexPlot")),
         column(5, plotlyOutput("scatterPlot"))#,
         #width = 10
-      )
-      #plotlyOutput("boxPlot"),
+      ),
+      plotlyOutput("boxPlot")#,
       #verbatimTextOutput("info"),
       #verbatimTextOutput("info2"),
     )

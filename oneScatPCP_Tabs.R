@@ -33,12 +33,12 @@ ui <- shinyUI(fluidPage(
       selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
       selectInput("selMetric", "Metric:", choices = myMetrics),
       selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
-      #"-----",
       actionButton("goButton", "Plot case!")
     ),
     mainPanel(
       tabsetPanel(
-        tabPanel(fluidRow(column(4, "Binned scatterplot", plotlyOutput("hexPlot"), numericInput("binSize", "Hexagon size:", value = 10)), column(4, offset=2, verbatimTextOutput("info2")))),
+        #tabPanel(fluidRow(column(4, "Binned scatterplot", plotlyOutput("hexPlot"), numericInput("binSize", "Hexagon size:", value = 10)), column(4, offset=2, verbatimTextOutput("info2")))),
+        tabPanel("Binned scatterplot", plotlyOutput("hexPlot"), numericInput("binSize", "Hexagon size:", value = 10)),
         tabPanel("Scatterplot", plotlyOutput("scatterPlot"), sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01)),
         tabPanel("Parallel coordinate plot", plotlyOutput("boxPlot"))
       )
