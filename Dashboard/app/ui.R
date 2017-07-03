@@ -45,39 +45,41 @@ body <- dashboardBody(
     #  withMathJax(), 
     #  includeMarkdown("readMe.Rmd")
     #),
+    
     tabItem(tabName = "hexPlot",
       fluidRow(
         column(width = 4, 
-         tabBox(width = NULL,
-           tabPanel(h5("Case metrics"),
-              verbatimTextOutput("info")),
-           tabPanel(h5("Plot metrics"),
+         box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
               selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
               selectInput("selMetric", "Metric:", choices = myMetrics),
               selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
               numericInput("binSize", "Hexagon size:", value = 10),
-              actionButton("goButton", "Plot case!")))),
+              actionButton("goButton", "Plot case!"))),
         column(width = 8,
-          box(width = NULL, plotlyOutput("hexPlot"), collapsible = TRUE, title = "Binned scatterplot", status = "primary", solidHeader = TRUE)))),
+          box(width = NULL, plotlyOutput("hexPlot"), collapsible = FALSE, background = "black", title = "Binned scatterplot", status = "primary", solidHeader = TRUE)))),
 
     tabItem(tabName = "scatterPlot",
-      #fluidRow(
-        #column(width = 4, 
-        # tabBox(width = NULL,
-        #   tabPanel(h5("Case metrics"),
-        #     verbatimTextOutput("info2"))),
-        #   tabPanel(h5("Plot metrics"),
-        #      sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01))),
-        #column(width = 8,
-          box(width = NULL, plotOutput("scatterPlot"), collapsible = TRUE, title = "Scatterplot", status = "primary", solidHeader = TRUE)),    
+      fluidRow(
+        column(width = 4, 
+           box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
+             selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+             selectInput("selMetric", "Metric:", choices = myMetrics),
+             selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+             sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01),
+             actionButton("goButton", "Plot case!"))),
+        column(width = 8,
+           box(width = NULL, plotlyOutput("scatterPlot"), collapsible = FALSE, background = "black", title = "Scatterplot", status = "primary", solidHeader = TRUE)))),    
     
     tabItem(tabName = "boxPlot",
-      #column(width = 4, 
-       #tabBox(width = NULL,
-      #   tabPanel(h5("Case metrics"),
-      #      verbatimTextOutput("info3")))),
-        #column(width = 8,
-          box(width = NULL, plotOutput("boxPlot"), collapsible = TRUE, title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))
+      fluidRow(
+        column(width = 4, 
+           box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
+             selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+             selectInput("selMetric", "Metric:", choices = myMetrics),
+             selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+             actionButton("goButton", "Plot case!"))),
+        column(width = 8,
+           box(width = NULL, plotlyOutput("boxPlot"), collapsible = FALSE, background = "black", title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))))
   )
 )
 
