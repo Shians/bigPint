@@ -52,7 +52,10 @@ body <- dashboardBody(
               numericInput("binSize", "Hexagon size:", value = 10),
               actionButton("goButton1", "Plot case!"))),
         column(width = 8,
-          box(width = NULL, plotlyOutput("hexPlot"), collapsible = FALSE, background = "black", title = "Binned scatterplot", status = "primary", solidHeader = TRUE)))),
+          box(width = NULL, plotlyOutput("hexPlot"), collapsible = FALSE, background = "black", title = "Binned scatterplot", status = "primary", solidHeader = TRUE))),
+      fluidRow(
+        column(width = 8, offset = 4,
+          box(width = NULL, verbatimTextOutput("info1"), collapsible = TRUE, title = "Observation metrics", status = "primary", solidHeader = TRUE)))),
 
     tabItem(tabName = "scatterPlot",
       fluidRow(
@@ -64,7 +67,10 @@ body <- dashboardBody(
              sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01),
              actionButton("goButton2", "Plot case!"))),
         column(width = 8,
-           box(width = NULL, plotlyOutput("scatterPlot"), collapsible = FALSE, background = "black", title = "Scatterplot", status = "primary", solidHeader = TRUE)))),    
+           box(width = NULL, plotlyOutput("scatterPlot"), collapsible = FALSE, background = "black", title = "Scatterplot", status = "primary", solidHeader = TRUE))),
+      fluidRow(
+        column(width = 8, offset = 4,
+          box(width = NULL, verbatimTextOutput("info2"), collapsible = TRUE, title = "Observation metrics", status = "primary", solidHeader = TRUE)))),    
     
     tabItem(tabName = "boxPlot",
       fluidRow(
@@ -75,7 +81,10 @@ body <- dashboardBody(
              selectInput("selOrder3", "Order:", choices = c("Increasing", "Decreasing")),
              actionButton("goButton3", "Plot case!"))),
         column(width = 8,
-           box(width = NULL, plotlyOutput("boxPlot"), collapsible = FALSE, background = "black", title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))))
+           box(width = NULL, plotlyOutput("boxPlot"), collapsible = FALSE, background = "black", title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))),
+      fluidRow(
+        column(width = 8, offset = 4,
+          box(width = NULL, verbatimTextOutput("info3"), collapsible = TRUE, title = "Observation metrics", status = "primary", solidHeader = TRUE))))
   )
 )
 
