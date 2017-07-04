@@ -38,6 +38,13 @@ shinyServer(function(input, output, session){
   observeEvent(input$selOrder2, values$selOrder <- input$selOrder2)
   observeEvent(input$selOrder3, values$selOrder <- input$selOrder3)
   
+  observe({
+    x <- values$selPair
+    #if (is.null(x)){x <- character(0)}
+    updateSelectizeInput(session, "selPair1", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
+    updateSelectizeInput(session, "selPair2", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
+    updateSelectizeInput(session, "selPair3", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)})
+  
   # Create data subset based on two letters user chooses
   datSel <- eventReactive(values$selPair, {
     validate(need(length(values$selPair) == 2, "Select a pair."))

@@ -19,7 +19,7 @@ for (i in 1:(length(myPairs)-1)){
   }
 }
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
-geneNum <- reactiveValues(x=0, selPair=NULL)
+values <- reactiveValues(x=0, selPair=NULL, selMetric=NULL, selOrder=NULL)
 
 sidebar <- dashboardSidebar(
   hr(),
@@ -46,7 +46,7 @@ body <- dashboardBody(
       fluidRow(
         column(width = 4, 
          box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
-              selectizeInput("selPair1", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)), #selected = geneNum$selPair
+              selectizeInput("selPair1", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
               selectInput("selMetric1", "Metric:", choices = myMetrics),
               selectInput("selOrder1", "Order:", choices = c("Increasing", "Decreasing")),
               numericInput("binSize", "Hexagon size:", value = 10),
@@ -58,7 +58,7 @@ body <- dashboardBody(
       fluidRow(
         column(width = 4, 
            box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
-             selectizeInput("selPair2", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2), selected = c(myPairs[1], myPairs[2])),
+             selectizeInput("selPair2", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
              selectInput("selMetric2", "Metric:", choices = myMetrics),
              selectInput("selOrder2", "Order:", choices = c("Increasing", "Decreasing")),
              sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01),
@@ -80,7 +80,7 @@ body <- dashboardBody(
 )
 
 dashboardPage(
-  dashboardHeader(title = "Overlaying cases of interest"),
+  dashboardHeader(title = "Overlaying cases"),
   sidebar,
   body
 )
