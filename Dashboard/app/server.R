@@ -74,7 +74,7 @@ shinyServer(function(input, output, session){
   currMetric <- eventReactive(values$x, {metricDF()[values$x, ]})
   currID <- eventReactive(currMetric(), {as.character(currMetric()$ID)})
   currGene <- eventReactive(currID(), {unname(unlist(datSel()[which(datSel()$ID == currID()), -1]))})
-  output$info <- renderPrint({ currMetric() })
+  output$info1 <- renderPrint({ currMetric() })
   output$info2 <- renderPrint({ currMetric() })
   output$info3 <- renderPrint({ currMetric() })
   
@@ -151,10 +151,7 @@ shinyServer(function(input, output, session){
     }
     tempDF <- data.frame(x=x, y=y)
     
-    #ggplot(mtcars, aes(x=wt, y=qsec)) + geom_point(alpha=0.5)
-    
-    #input$alpha
-    p2 <- reactive(ggplot(tempDF, aes(x=x, y=y)) + geom_point(alpha = input$alpha) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) +  coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1))
+    p2 <- reactive(ggplot(tempDF, aes(x=x, y=y)) + geom_point(alpha = input$alpha) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1))
     
     plotlyScatter <- reactive(ggplotly(p2(), height = 400, width = 400))
     
@@ -163,9 +160,11 @@ shinyServer(function(input, output, session){
      function(el, x, data) {
      noPoint = x.data.length;
      Shiny.addCustomMessageHandler('points', function(drawPoints) {
+     
      if (x.data.length > noPoint){
-     Plotly.deleteTraces(el.id, x.data.length-1);
+      Plotly.deleteTraces(el.id, noPoint);
      }
+
      var Traces = [];
      var trace = {
      x: drawPoints.geneX,
@@ -220,6 +219,8 @@ shinyServer(function(input, output, session){
     ggBP() %>% onRender("
       function(el, x, data) {
       
+console.log(['x', x])
+console.log(['x.data.length', x.data.length])
       noPoint = x.data.length;
       
       function range(start, stop, step){
@@ -230,9 +231,18 @@ shinyServer(function(input, output, session){
       
       Shiny.addCustomMessageHandler('lines',
       function(drawLines) {
-      
-      if (x.data.length > noPoint){
-      Plotly.deleteTraces(el.id, x.data.length-1);
+
+console.log(['el.id', el.id])
+console.log(['noPoint', noPoint])
+console.log(['x', x])
+
+i = x.data.length
+if (i > 1){
+while (i > 1){
+Plotly.deleteTraces(el.id, (i-1));
+i--;
+}
+
       }
       
       var dLength = drawLines.length
