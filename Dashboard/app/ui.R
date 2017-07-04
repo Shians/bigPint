@@ -19,6 +19,7 @@ for (i in 1:(length(myPairs)-1)){
   }
 }
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
+geneNum <- reactiveValues(x=0, selPair=NULL)
 
 sidebar <- dashboardSidebar(
   hr(),
@@ -41,20 +42,15 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
   tabItems(
-    #tabItem(tabName = "readme",
-    #  withMathJax(), 
-    #  includeMarkdown("readMe.Rmd")
-    #),
-    
     tabItem(tabName = "hexPlot",
       fluidRow(
         column(width = 4, 
          box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
-              selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
-              selectInput("selMetric", "Metric:", choices = myMetrics),
-              selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+              selectizeInput("selPair1", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)), #selected = geneNum$selPair
+              selectInput("selMetric1", "Metric:", choices = myMetrics),
+              selectInput("selOrder1", "Order:", choices = c("Increasing", "Decreasing")),
               numericInput("binSize", "Hexagon size:", value = 10),
-              actionButton("goButton", "Plot case!"))),
+              actionButton("goButton1", "Plot case!"))),
         column(width = 8,
           box(width = NULL, plotlyOutput("hexPlot"), collapsible = FALSE, background = "black", title = "Binned scatterplot", status = "primary", solidHeader = TRUE)))),
 
@@ -62,11 +58,11 @@ body <- dashboardBody(
       fluidRow(
         column(width = 4, 
            box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
-             selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
-             selectInput("selMetric", "Metric:", choices = myMetrics),
-             selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
+             selectizeInput("selPair2", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2), selected = c(myPairs[1], myPairs[2])),
+             selectInput("selMetric2", "Metric:", choices = myMetrics),
+             selectInput("selOrder2", "Order:", choices = c("Increasing", "Decreasing")),
              sliderInput("alpha", "Alpha level:", min=0, max=1, value=1, step=0.01),
-             actionButton("goButton", "Plot case!"))),
+             actionButton("goButton2", "Plot case!"))),
         column(width = 8,
            box(width = NULL, plotlyOutput("scatterPlot"), collapsible = FALSE, background = "black", title = "Scatterplot", status = "primary", solidHeader = TRUE)))),    
     
@@ -74,10 +70,10 @@ body <- dashboardBody(
       fluidRow(
         column(width = 4, 
            box(width = NULL, status = "primary", title = "Plot metrics", solidHeader = TRUE,
-             selectizeInput("selPair", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
-             selectInput("selMetric", "Metric:", choices = myMetrics),
-             selectInput("selOrder", "Order:", choices = c("Increasing", "Decreasing")),
-             actionButton("goButton", "Plot case!"))),
+             selectizeInput("selPair3", "Pairs:", choices = myPairs, multiple = TRUE, options = list(maxItems = 2)),
+             selectInput("selMetric3", "Metric:", choices = myMetrics),
+             selectInput("selOrder3", "Order:", choices = c("Increasing", "Decreasing")),
+             actionButton("goButton3", "Plot case!"))),
         column(width = 8,
            box(width = NULL, plotlyOutput("boxPlot"), collapsible = FALSE, background = "black", title = "Parallel coordinate plot", status = "primary", solidHeader = TRUE))))
   )
