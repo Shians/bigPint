@@ -38,12 +38,27 @@ shinyServer(function(input, output, session){
   observeEvent(input$selOrder2, values$selOrder <- input$selOrder2)
   observeEvent(input$selOrder3, values$selOrder <- input$selOrder3)
   
-  observe({
-    x <- values$selPair
+  
+  
+  
+  
+  observe({x <- values$selPair
     #if (is.null(x)){x <- character(0)}
     updateSelectizeInput(session, "selPair1", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
     updateSelectizeInput(session, "selPair2", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
     updateSelectizeInput(session, "selPair3", "Pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)})
+
+  observe({x <- values$selMetric
+  #if (is.null(x)){x <- character(0)}
+    updateSelectizeInput(session, "selMetric1", "Metric:", choices = myMetrics, selected = x)
+    updateSelectizeInput(session, "selMetric2", "Metric:", choices = myMetrics, selected = x)
+    updateSelectizeInput(session, "selMetric3", "Metric:", choices = myMetrics, selected = x)})
+    
+  observe({x <- values$selOrder
+  #if (is.null(x)){x <- character(0)}
+  updateSelectizeInput(session, "selOrder1", "Order:", choices = c("Increasing", "Decreasing"), selected = x)
+  updateSelectizeInput(session, "selOrder2", "Order:", choices = c("Increasing", "Decreasing"), selected = x)
+  updateSelectizeInput(session, "selOrder3", "Order:", choices = c("Increasing", "Decreasing"), selected = x)}) 
   
   # Create data subset based on two letters user chooses
   datSel <- eventReactive(values$selPair, {
@@ -146,7 +161,7 @@ shinyServer(function(input, output, session){
     #ggplot(mtcars, aes(x=wt, y=qsec)) + geom_point(alpha=0.5)
     
     #input$alpha
-    p2 <- reactive(ggplot(tempDF, aes(x=x, y=y)) + geom_point(alpha = 0.5) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) +  coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1))
+    p2 <- reactive(ggplot(tempDF, aes(x=x, y=y)) + geom_point(alpha = input$alpha) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) +  coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1))
     
     plotlyScatter <- reactive(ggplotly(p2(), height = 400, width = 400))
     
