@@ -242,7 +242,6 @@ while (i > 1){
 Plotly.deleteTraces(el.id, (i-1));
 i--;
 }
-
       }
       
       var dLength = drawLines.length
