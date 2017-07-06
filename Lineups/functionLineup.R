@@ -36,22 +36,18 @@ getLineups <- function(countTable, group1, group2, nRep, nPerm, outDir, indScale
   }
   
   countTable2 = countTable[,c(which(groupNames %in% "ID"), which(groupNames %in% c(group1, group2)))]
+  countTable2 = as.data.frame(countTable2)
   # Keep original order for first row, then obtain random rows from allCombLab
   randPerm = c(1, sample(2:nrow(allCombLab), (nPerm-1)))
-  tt <- merge( countTable2, topGenes[[paste0(group1, "vs", group2)]], by="ID")
-  permList[[1]] = arrange(tt, adjPVal)
-  write.csv(permList[[1]], file= paste0(getwd(), "/", outDir, "/TopDEG1.csv"))
+  # tt <- merge( countTable2, topGenes[[paste0(group1, "vs", group2)]], by="ID")
+  # permList[[1]] = arrange(tt, adjPVal)
+  # write.csv(permList[[1]], file= paste0(getwd(), "/", outDir, "/TopDEG1.csv"))
     
-  for(i in 2:nPerm){
-    colnames(y[[1]]) = allCombLab[randPerm[i],]
-    y[[2]]$group <- as.factor(unlist(lapply(colnames(y[[1]]), function (x) unlist(strsplit(x, "[.]"))[1])))
-    attributes(y[[4]])$dimnames[[2]] = allCombLab[randPerm[i],]
-    de = exactTest(y, pair=c(group1,group2))
-    tt = topTags(de, n=nrow(y))
-    
-    tt <- merge( y[[1]][,which(groupNames2 %in% c(group1, group2))], tt[[1]], by="row.names")
-    permList[[i]] = arrange(tt, FDR)
-    colnames(permList[[i]])[1] <- "ID"
+  for(i in 1:nPerm){
+    colnames(countTable2) <- allCombLab[randPerm[i],]
+    countTable2 <- as.data.frame(countTable2)
+    tt <- getFDR(countTable2)
+    permList[[i]] = arrange(tt, adjPVal)
     write.csv(permList[[i]], file= paste(getwd(), "/", outDir, "/TopDEG", i, ".csv", sep=""))
   }
 
@@ -99,14 +95,7 @@ getLineups <- function(countTable, group1, group2, nRep, nPerm, outDir, indScale
   write.table(permInfo, sep=",",  col.names=FALSE, file = paste0(getwd(), "/", outDir, "/Permutations.csv"))
 }
 
-countTable <- readRDS("data_100limma.Rds")
-countTable <- as.data.frame(countTable[[1]])
-setDT(countTable, keep.rownames = TRUE)[]
-colnames(countTable)[1] = "ID"
-countTable <- as.data.frame(countTable)
-topGenes <- readRDS("topGenes_100limma.Rds")
-groups <- unique(unlist(lapply(colnames(countTable), function (x) unlist(strsplit(x, "[.]"))[1])))
-groups <- groups[-which(groups %in% "ID")]
+countTable <- readRDS("/Users/lindz/bigPint/BeeCountOrig.Rds")
 
 getLineups(countTable = countTable, group1="NP", group2="NS", nRep=6, nPerm=20, outDir="/NS-NP", indScale=FALSE)
 getLineups(countTable = countTable, group1="NC", group2="NP", nRep=6, nPerm=20, outDir="/NC-NP", indScale=FALSE)
