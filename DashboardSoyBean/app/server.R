@@ -97,7 +97,7 @@ shinyServer(function(input, output, session){
     my_breaks <- c(2, 4, 6, 8, 20, 1000)    
     p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend"))
     
-    plotlyHex <- reactive(ggplotly(p(), height = 400, width = 400))
+    plotlyHex <- reactive(ggplotly(p(), height = 400, width = 400) %>% config(displayModeBar = F))
     
     # Use onRender() function to draw x and y values of selected row as orange point
     plotlyHex() %>% onRender("
@@ -154,7 +154,7 @@ shinyServer(function(input, output, session){
     })
     
     BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
-    ggBP <- reactive(ggplotly(BP(), width=600))
+    ggBP <- reactive(ggplotly(BP(), width=600) %>% config(displayModeBar = F))
     
     observe({
       session$sendCustomMessage(type = "lines", currGene())
