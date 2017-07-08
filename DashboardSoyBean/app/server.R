@@ -154,7 +154,7 @@ shinyServer(function(input, output, session){
     })
     
     BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
-    ggBP <- reactive(ggplotly(BP(), width=600) %>% config(displayModeBar = F))
+    ggBP <- reactive(ggplotly(BP(), width=600) %>% config(displayModeBar = F, staticPlot = T))
     
     observe({
       session$sendCustomMessage(type = "lines", currGene())
@@ -196,6 +196,7 @@ shinyServer(function(input, output, session){
       width: 1
       },
       opacity: 0.9,
+      hoverinfo: 'none'
       }
       Traces.push(traceLine);
       Plotly.addTraces(el.id, Traces);
