@@ -6,15 +6,10 @@ library(htmlwidgets)
 library(dplyr)
 library(tidyr)
 library(data.table)
+library(DESeq2)
 
-dat <- readRDS("/Users/lindz/bigPint/tblshoot/AllPairs/data_limma.Rds")
-dat <- dat$counts
-dat <- as.data.frame(dat)
-setDT(dat, keep.rownames = TRUE)[]
-colnames(dat)[1] <- "ID"
+dat <- readRDS("/Users/lindz/bigPint/DashBoardBees/appRLog/RLogDat.Rds")
 datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
-dat[,2:ncol(dat)] <- log(dat[,2:ncol(dat)]+1)
-dat <- as.data.frame(dat)
 
 myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
 metrics <- readRDS("/Users/lindz/bigPint/tblshoot/AllPairs/topGenes_limma.Rds")
@@ -44,13 +39,13 @@ shinyServer(function(input, output, session){
   observeEvent(input$selOrder2, values$selOrder <- input$selOrder2)
   
   observe({x <- values$selPair
-    updateSelectizeInput(session, "selPair1", "Treatment pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
-    updateSelectizeInput(session, "selPair2", "Treatment pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)})
-
+  updateSelectizeInput(session, "selPair1", "Treatment pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)
+  updateSelectizeInput(session, "selPair2", "Treatment pairs:", choices = myPairs, options = list(maxItems = 2), selected = x)})
+  
   observe({x <- values$selMetric
-    updateSelectizeInput(session, "selMetric1", "Metric:", choices = myMetrics, selected = x)
-    updateSelectizeInput(session, "selMetric2", "Metric:", choices = myMetrics, selected = x)})
-    
+  updateSelectizeInput(session, "selMetric1", "Metric:", choices = myMetrics, selected = x)
+  updateSelectizeInput(session, "selMetric2", "Metric:", choices = myMetrics, selected = x)})
+  
   observe({x <- values$selOrder
   updateSelectizeInput(session, "selOrder1", "Metric order:", choices = c("Increasing", "Decreasing"), selected = x)
   updateSelectizeInput(session, "selOrder2", "Metric order:", choices = c("Increasing", "Decreasing"), selected = x)}) 
@@ -107,7 +102,7 @@ shinyServer(function(input, output, session){
     my_breaks <- c(2, 4, 6, 8, 20, 1000)    
     p <- reactive(ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = values$selPair[1], y = values$selPair[2]) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend"))
     
-    plotlyHex <- reactive(ggplotly(p(), height = 400, width = 400))
+    plotlyHex <- reactive(ggplotly(p(), height = 400, width = 400) %>% config(displayModeBar = F))
     
     # Use onRender() function to draw x and y values of selected row as orange point
     plotlyHex() %>% onRender("
@@ -164,7 +159,7 @@ shinyServer(function(input, output, session){
     })
     
     BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
-    ggBP <- reactive(ggplotly(BP(), width=600))
+    ggBP <- reactive(ggplotly(BP(), width=600, height = 400) %>% config(displayModeBar = F, staticPlot = T))
     
     observe({
       session$sendCustomMessage(type = "lines", currGene())
@@ -173,8 +168,8 @@ shinyServer(function(input, output, session){
     ggBP() %>% onRender("
       function(el, x, data) {
       
-console.log(['x', x])
-console.log(['x.data.length', x.data.length])
+      console.log(['x', x])
+      console.log(['x.data.length', x.data.length])
       noPoint = x.data.length;
       
       function range(start, stop, step){
@@ -185,13 +180,13 @@ console.log(['x.data.length', x.data.length])
       
       Shiny.addCustomMessageHandler('lines',
       function(drawLines) {
-
+      
       i = x.data.length
       if (i > 1){
-        while (i > 1){
-          Plotly.deleteTraces(el.id, (i-1));
-          i--;
-        }
+      while (i > 1){
+      Plotly.deleteTraces(el.id, (i-1));
+      i--;
+      }
       }
       
       var dLength = drawLines.length
@@ -206,6 +201,7 @@ console.log(['x.data.length', x.data.length])
       width: 1
       },
       opacity: 0.9,
+      hoverinfo: 'none'
       }
       Traces.push(traceLine);
       Plotly.addTraces(el.id, Traces);
