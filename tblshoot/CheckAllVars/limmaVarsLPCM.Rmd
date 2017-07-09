@@ -49,6 +49,16 @@ x$samples$rnaConc <- exVars$rnaConc
 x$samples$rin <- exVars$RIN
 ```
 
+Make quantitative extraneous variables categorical
+```{r}
+x$samples$day <- as.factor(x$samples$day)
+x$samples$mortality <- cut(x$samples$mortality,3,labels=c('Low','Medium','High'))
+x$samples$sbv <- cut(x$samples$sbv,3,labels=c('Low','Medium','High'))
+x$samples$iapv <- cut(x$samples$iapv,3,labels=c('Low','Medium','High'))
+x$samples$rnaConc <- cut(x$samples$rnaConc,3,labels=c('Low','Medium','High'))
+x$samples$rin <- cut(x$samples$rin,3,labels=c('Low','Medium','High'))
+```
+
 Filter then normalize
 ```{r}
 # rule of thumb is to keep rows that have at least 10 counts for several samples
