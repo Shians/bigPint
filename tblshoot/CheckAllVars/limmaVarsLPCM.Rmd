@@ -40,6 +40,8 @@ x <- DGEList(counts=beeCounts)
 exVars <- read.csv("/Users/lindz/bigPint/tblshoot/CheckAllVars/extraVarClean.csv")
 
 x$samples$group <- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, "[.]"))[1],1))))
+x$samples$virus <- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, "[.]"))[1],1,1))))
+x$samples$diet <- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, "[.]"))[1],2,2))))
 x$samples$lane <- exVars$Lane
 x$samples$day <- exVars$Day
 x$samples$mortality <- exVars$Mortality
@@ -80,38 +82,56 @@ col.group <- x$samples$group
 levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
 
+col.virus <- x$samples$virus
+levels(col.virus) <-  brewer.pal(nlevels(col.virus), "Set2")
+col.virus <- as.character(col.virus)
+
+col.diet <- x$samples$diet
+levels(col.diet) <-  brewer.pal(nlevels(col.diet), "Set3")
+col.diet <- as.character(col.diet)
+
 col.lane <- x$samples$lane
-levels(col.lane) <-  brewer.pal(nlevels(col.lane), "Set2")
+levels(col.lane) <-  brewer.pal(nlevels(col.lane), "Set1")
 col.lane <- as.character(col.lane)
 
 col.day <- x$samples$day
-levels(col.day) <-  brewer.pal(nlevels(col.day), "Set3")
+levels(col.day) <-  brewer.pal(nlevels(col.day), "Set2")
 col.day <- as.character(col.day)
 
 col.mortality <- x$samples$mortality
-levels(col.mortality) <-  brewer.pal(nlevels(col.mortality), "Set1")
+levels(col.mortality) <-  brewer.pal(nlevels(col.mortality), "Set3")
 col.mortality <- as.character(col.mortality)
 
 col.sbv <- x$samples$sbv
-levels(col.sbv) <-  brewer.pal(nlevels(col.sbv), "Set2")
+levels(col.sbv) <-  brewer.pal(nlevels(col.sbv), "Set1")
 col.sbv <- as.character(col.sbv)
 
 col.iapv <- x$samples$iapv
-levels(col.iapv) <-  brewer.pal(nlevels(col.iapv), "Set3")
+levels(col.iapv) <-  brewer.pal(nlevels(col.iapv), "Set2")
 col.iapv <- as.character(col.iapv)
 
 col.rnaConc <- x$samples$rnaConc
-levels(col.rnaConc) <-  brewer.pal(nlevels(col.rnaConc), "Set1")
+levels(col.rnaConc) <-  brewer.pal(nlevels(col.rnaConc), "Set3")
 col.rnaConc <- as.character(col.rnaConc)
 
 col.rin <- x$samples$rin
-levels(col.rin) <-  brewer.pal(nlevels(col.rin), "Set2")
+levels(col.rin) <-  brewer.pal(nlevels(col.rin), "Set1")
 col.rin <- as.character(col.rin)
 ```
 
 Group LCPM
 ```{r}
 plotMDS(lcpm, labels=colnames(lcpm), col=col.group)
+```
+
+Virus LCPM
+```{r}
+plotMDS(lcpm, labels=colnames(lcpm), col=col.virus)
+```
+
+Diet LCPM
+```{r}
+plotMDS(lcpm, labels=colnames(lcpm), col=col.diet)
 ```
 
 Lane LCPM
@@ -151,5 +171,5 @@ plotMDS(lcpm, labels=colnames(lcpm), col=col.rin)
 
 Make interactive plots for all variables in LCPM
 ```{r}
-glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep="_"), groups=x$samples[,c(1,c(4:10))], launch=FALSE)
+glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$virus, x$samples$diet, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep="_"), groups=x$samples[,c(1,c(4:12))], launch=FALSE, folder = "glimmaPlotsLPCM", html = "glimmaPlotsLPCM")
 ```

@@ -77,6 +77,8 @@ x &lt;- DGEList(counts=beeCounts)
 exVars &lt;- read.csv(&quot;/Users/lindz/bigPint/tblshoot/CheckAllVars/extraVarClean.csv&quot;)
 
 x$samples$group &lt;- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, &quot;[.]&quot;))[1],1))))
+x$samples$virus &lt;- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, &quot;[.]&quot;))[1],1,1))))
+x$samples$diet &lt;- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, &quot;[.]&quot;))[1],2,2))))
 x$samples$lane &lt;- exVars$Lane
 x$samples$day &lt;- exVars$Day
 x$samples$mortality &lt;- exVars$Mortality
@@ -84,6 +86,13 @@ x$samples$sbv &lt;- exVars$SBV
 x$samples$iapv &lt;- exVars$IAPV
 x$samples$rnaConc &lt;- exVars$rnaConc
 x$samples$rin &lt;- exVars$RIN</code></pre>
+<p>Make quantitative extraneous variables categorical</p>
+<pre class="r"><code>x$samples$day &lt;- as.factor(x$samples$day)
+x$samples$mortality &lt;- cut(x$samples$mortality,3,labels=c(&#39;Low&#39;,&#39;Medium&#39;,&#39;High&#39;))
+x$samples$sbv &lt;- cut(x$samples$sbv,3,labels=c(&#39;Low&#39;,&#39;Medium&#39;,&#39;High&#39;))
+x$samples$iapv &lt;- cut(x$samples$iapv,3,labels=c(&#39;Low&#39;,&#39;Medium&#39;,&#39;High&#39;))
+x$samples$rnaConc &lt;- cut(x$samples$rnaConc,3,labels=c(&#39;Low&#39;,&#39;Medium&#39;,&#39;High&#39;))
+x$samples$rin &lt;- cut(x$samples$rin,3,labels=c(&#39;Low&#39;,&#39;Medium&#39;,&#39;High&#39;))</code></pre>
 <p>Filter then normalize</p>
 <pre class="r"><code># rule of thumb is to keep rows that have at least 10 counts for several samples
 keep.exprs &lt;- which(rowSums(x[[1]]&gt;10)&gt;8)
@@ -92,73 +101,83 @@ x &lt;- calcNormFactors(x, method = &quot;TMM&quot;)
 lcpm &lt;- cpm(x, log=TRUE)</code></pre>
 <p>Make boxplot</p>
 <pre class="r"><code>ggparcoord(data.frame(lcpm), columns=1:48, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-25-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-32-1.png" width="960" /></p>
 <p>Create MDS plots</p>
 <pre class="r"><code>library(RColorBrewer)
 col.group &lt;- x$samples$group
 levels(col.group) &lt;- brewer.pal(nlevels(col.group), &quot;Set1&quot;)
 col.group &lt;- as.character(col.group)
 
+col.virus &lt;- x$samples$virus
+levels(col.virus) &lt;-  brewer.pal(nlevels(col.virus), &quot;Set2&quot;)</code></pre>
+<pre><code>Warning in brewer.pal(nlevels(col.virus), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+<pre class="r"><code>col.virus &lt;- as.character(col.virus)
+
+col.diet &lt;- x$samples$diet
+levels(col.diet) &lt;-  brewer.pal(nlevels(col.diet), &quot;Set3&quot;)
+col.diet &lt;- as.character(col.diet)
+
 col.lane &lt;- x$samples$lane
-levels(col.lane) &lt;-  brewer.pal(nlevels(col.lane), &quot;Set2&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.lane), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+levels(col.lane) &lt;-  brewer.pal(nlevels(col.lane), &quot;Set1&quot;)</code></pre>
+<pre><code>Warning in brewer.pal(nlevels(col.lane), &quot;Set1&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
 <pre class="r"><code>col.lane &lt;- as.character(col.lane)
 
 col.day &lt;- x$samples$day
-levels(col.day) &lt;-  brewer.pal(nlevels(col.day), &quot;Set3&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.day), &quot;Set3&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+levels(col.day) &lt;-  brewer.pal(nlevels(col.day), &quot;Set2&quot;)</code></pre>
+<pre><code>Warning in brewer.pal(nlevels(col.day), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
 <pre class="r"><code>col.day &lt;- as.character(col.day)
 
 col.mortality &lt;- x$samples$mortality
-levels(col.mortality) &lt;-  brewer.pal(nlevels(col.mortality), &quot;Set1&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.mortality), &quot;Set1&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.mortality &lt;- as.character(col.mortality)
+levels(col.mortality) &lt;-  brewer.pal(nlevels(col.mortality), &quot;Set3&quot;)
+col.mortality &lt;- as.character(col.mortality)
 
 col.sbv &lt;- x$samples$sbv
-levels(col.sbv) &lt;-  brewer.pal(nlevels(col.sbv), &quot;Set2&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.sbv), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.sbv &lt;- as.character(col.sbv)
+levels(col.sbv) &lt;-  brewer.pal(nlevels(col.sbv), &quot;Set1&quot;)
+col.sbv &lt;- as.character(col.sbv)
 
 col.iapv &lt;- x$samples$iapv
-levels(col.iapv) &lt;-  brewer.pal(nlevels(col.iapv), &quot;Set3&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.iapv), &quot;Set3&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.iapv &lt;- as.character(col.iapv)
+levels(col.iapv) &lt;-  brewer.pal(nlevels(col.iapv), &quot;Set2&quot;)
+col.iapv &lt;- as.character(col.iapv)
 
 col.rnaConc &lt;- x$samples$rnaConc
-levels(col.rnaConc) &lt;-  brewer.pal(nlevels(col.rnaConc), &quot;Set1&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.rnaConc), &quot;Set1&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.rnaConc &lt;- as.character(col.rnaConc)
+levels(col.rnaConc) &lt;-  brewer.pal(nlevels(col.rnaConc), &quot;Set3&quot;)
+col.rnaConc &lt;- as.character(col.rnaConc)
 
 col.rin &lt;- x$samples$rin
-levels(col.rin) &lt;-  brewer.pal(nlevels(col.rin), &quot;Set2&quot;)</code></pre>
-<pre><code>Warning in brewer.pal(nlevels(col.rin), &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
-<pre class="r"><code>col.rin &lt;- as.character(col.rin)</code></pre>
+levels(col.rin) &lt;-  brewer.pal(nlevels(col.rin), &quot;Set1&quot;)
+col.rin &lt;- as.character(col.rin)</code></pre>
 <p>Group LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.group)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-27-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-34-1.png" width="960" /></p>
+<p>Virus LCPM</p>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.virus)</code></pre>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-35-1.png" width="960" /></p>
+<p>Diet LCPM</p>
+<pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.diet)</code></pre>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-36-1.png" width="960" /></p>
 <p>Lane LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.lane)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-28-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-37-1.png" width="960" /></p>
 <p>Day LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.day)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-29-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-38-1.png" width="960" /></p>
 <p>Mortality LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.mortality)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-30-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-39-1.png" width="960" /></p>
 <p>SBV LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.sbv)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-31-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-40-1.png" width="960" /></p>
 <p>IAPV LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.iapv)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-32-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-41-1.png" width="960" /></p>
 <p>RNAConc LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.rnaConc)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-33-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-42-1.png" width="960" /></p>
 <p>RIN LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.rin)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-34-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-43-1.png" width="960" /></p>
 <p>Make interactive plots for all variables in LCPM</p>
-<pre class="r"><code>glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep=&quot;_&quot;), groups=x$samples[,c(1,c(4:10))], launch=FALSE)</code></pre>
+<pre class="r"><code>glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$virus, x$samples$diet, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep=&quot;_&quot;), groups=x$samples[,c(1,c(4:12))], launch=FALSE, folder = &quot;glimmaPlotsLPCM&quot;, html = &quot;glimmaPlotsLPCM&quot;)</code></pre>
 
 
       </div>
