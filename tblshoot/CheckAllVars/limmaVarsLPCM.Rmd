@@ -30,6 +30,7 @@ library(ggplot2)
 library(edgeR)
 library(DESeq2)
 
+rm(list=ls())
 thisPath <- "/Users/lindz/bigPint"
 beeCounts <- read.delim(file=paste0(thisPath, "/AllLaneCount.txt"), row.names=1, stringsAsFactors = FALSE)
 colnames(beeCounts) <- c("NC.1", "NC.2", "NR.1", "VR.1", "NS.1", "VP.1", "NS.2", "VR.2", "NP.1", "VP.2", "VC.1", "NP.2", "VP.3", "NP.3", "VS.1", "VS.2", "VC.2", "NC.3", "VP.4", "NC.4", "NR.2", "VC.3", "VC.4", "NP.4", "VR.3", "NC.5", "VS.3", "NP.5", "VC.5", "VS.4", "NS.3", "VS.5", "VP.5", "NR.3", "NR.4", "VC.6", "NS.4", "NC.6", "NP.6", "VR.4", "NR.5", "NR.6", "NS.5", "VP.6", "NS.6", "VR.5", "VR.6", "VS.6")
@@ -38,7 +39,7 @@ x <- DGEList(counts=beeCounts)
 
 exVars <- read.csv("/Users/lindz/bigPint/tblshoot/CheckAllVars/extraVarClean.csv")
 
-x$samples$group <- unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, "[.]"))[1],1)))
+x$samples$group <- as.factor(unlist(lapply(colnames(x), function(x) substring(unlist(strsplit(x, "[.]"))[1],1))))
 x$samples$lane <- exVars$Lane
 x$samples$day <- exVars$Day
 x$samples$mortality <- exVars$Mortality
@@ -54,23 +55,19 @@ Filter then normalize
 keep.exprs <- which(rowSums(x[[1]]>10)>8)
 x <- x[keep.exprs,, keep.lib.sizes=FALSE] # 15,314 to 10,221
 x <- calcNormFactors(x, method = "TMM")
-rld <- rlog(x[[1]])
+lcpm <- cpm(x, log=TRUE)
 ```
 
-Make boxplots
+Make boxplot
 ```{r}
-ggparcoord(data.frame(log(x[[1]]/colMeans(x[[1]]))), columns=1:48, alphaLines=0, boxplot=TRUE, scale="globalminmax") + coord_flip()
-
-ggparcoord(data.frame(rld), columns=1:48, alphaLines=0, boxplot=TRUE, scale="globalminmax") + coord_flip()
+ggparcoord(data.frame(lcpm), columns=1:48, alphaLines=0, boxplot=TRUE, scale="globalminmax") + coord_flip()
 ```
 
 Create MDS plots
 ```{r}
 library(RColorBrewer)
-lcpm <- cpm(x, log=TRUE)
-
 col.group <- x$samples$group
-levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
+levels(col.group) <- brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
 
 col.lane <- x$samples$lane
@@ -89,9 +86,9 @@ col.sbv <- x$samples$sbv
 levels(col.sbv) <-  brewer.pal(nlevels(col.sbv), "Set2")
 col.sbv <- as.character(col.sbv)
 
-col.ipav <- x$samples$iapv
-levels(col.ipav) <-  brewer.pal(nlevels(col.ipav), "Set3")
-col.ipav <- as.character(col.ipav)
+col.iapv <- x$samples$iapv
+levels(col.iapv) <-  brewer.pal(nlevels(col.iapv), "Set3")
+col.iapv <- as.character(col.iapv)
 
 col.rnaConc <- x$samples$rnaConc
 levels(col.rnaConc) <-  brewer.pal(nlevels(col.rnaConc), "Set1")
@@ -142,21 +139,7 @@ RIN LCPM
 plotMDS(lcpm, labels=colnames(lcpm), col=col.rin)
 ```
 
-
-
-
-
-
-Group LCPM
-```{r}
-plotMDS(lcpm, labels=colnames(lcpm), col=col.group)
-```
-
-
-
-
-
 Make interactive plots for all variables in LCPM
 ```{r}
-glMDSPlot(lcpm, labels=paste(group, lane, day, mortality, sbv, iapv, rnaConc, rin, colnames(lcpm), sep="_"), groups=x$samples[,c(1,c(4:10))], launch=FALSE)
+glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep="_"), groups=x$samples[,c(1,c(4:10))], launch=FALSE)
 ```
