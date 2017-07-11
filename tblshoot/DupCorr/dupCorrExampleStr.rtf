@@ -1,0 +1,114 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf210
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red254\green147\blue106;\red194\green229\blue166;\red218\green119\blue254;
+}
+\margl1440\margr1440\vieww10540\viewh10920\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 \cb2 # Simulate data\cb1 \
+\cb3 > str(counts)\cb1  - 100 rows, 90 columns\
+ int [1:100, 1:90] 487 526 462 502 538 510 471 461 527 508 ...\
+ - attr(*, "dimnames")=List of 2\
+  ..$ : chr [1:100] "g_1" "g_2" "g_3" "g_4" ...\
+  ..$ : NULL\
+\
+\cb3 >head(counts,2)\cb1  - columns go to V90, rows go to g_100\
+       V1  V2  V3  V4  V5  V6  V7  V8  V9 V10 V11 V12 V13 V14 V15 V16 V17 V18 V19 V20 V21\
+g_1   487 507 495 489 515 461 504 505 475 524 508 489 488 520 519 534 512 532 490 546 545\
+g_2   526 513 467 476 477 534 450 519 475 517 523 451 504 523 479 479 489 504 517 517 489\
+\
+\cb3 > str(anno) \cb4 x$samples\cb1 \
+'data.frame':	90 obs. of  3 variables:\
+ $ block: Factor w/ 6 levels "block1","block2",..: 1 1 1 1 1 1 1 1 1 1 ...\
+ $ fac1 : Factor w/ 3 levels "A","B","C": 1 2 3 1 2 3 1 2 3 1 ...\
+ $ fac2 : Factor w/ 5 levels "treat1","treat2",..: 1 2 3 4 5 1 2 3 4 5 ...\
+\cb3 > head(anno)\cb1 \
+   block fac1   fac2\
+1 block1    A treat1\
+2 block1    B treat2\
+3 block1    C treat3\
+4 block1    A treat4\
+5 block1    B treat5\
+6 block1    C treat1\
+\
+\cb3 > str(combined_fac)\cb4 x$samples$group\cb1 \
+ Factor w/ 15 levels "A.treat1","A.treat2",..: 1 7 13 4 10 11 2 8 14 5 ...\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx5902\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \cb3 > length(combined_fac)\cb1 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 [1] 90\
+\cb3 > head(combined_fac)\cb1 \
+[1] A.treat1 B.treat2 C.treat3 A.treat4 B.treat5 C.treat1\
+15 Levels: A.treat1 A.treat2 A.treat3 A.treat4 A.treat5 B.treat1 B.treat2 ... C.treat5\
+\
+\cb3 > head(design,1)\cb1  - has 90 rows\
+  A.treat1 A.treat2 A.treat3 A.treat4 A.treat5 B.treat1 B.treat2 B.treat3 B.treat4\
+1        1        0        0        0        0        0        0        0        0\
+  B.treat5 C.treat1 C.treat2 C.treat3 C.treat4 C.treat5\
+1        0        0        0        0        0        0\
+\
+\cb3 > str(design)\cb1 \
+ num [1:90, 1:15] 1 0 0 0 0 0 0 0 0 0 ...\
+ - attr(*, "dimnames")=List of 2\
+  ..$ : chr [1:90] "1" "2" "3" "4" ...\
+  ..$ : chr [1:15] "A.treat1" "A.treat2" "A.treat3" "A.treat4" ...\
+ - attr(*, "assign")= int [1:15] 1 1 1 1 1 1 1 1 1 1 ...\
+ - attr(*, "contrasts")=List of 1\
+  ..$ combined_fac: chr "contr.treatment"\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \cb2 # Single voom\cb1 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \cb3 > corfit\cb1 \
+$consensus.correlation\
+[1] -0.002984798\
+\
+$cor\
+[1] -0.002984798\
+\
+$atanh.correlations\
+  [1]  0.0606802757 -0.0375395106 -0.0045471275 -0.0530998928  0.0071555450  0.0406933286\
+  [7]  0.0240216253  0.0344215972  0.0321129240 -0.0259134029 -0.0349932405 -0.0212025321\
+ [13]  0.0455803440  0.0553135689 -0.0185500222  0.0565573531  0.0810214167 -0.0272471232\
+ [19]  0.0197778959  0.0236545108 -0.0252050925 -0.0399720640  0.0025826569 -0.0026576873\
+ [25] -0.0421229112  0.0384755465 -0.0370674189 -0.0141070494  0.0965311263  0.0770865765\
+ [31]  0.0781965142 -0.0463627058 -0.0241922926 -0.0230792370 -0.0022176505  0.0016310859\
+ [37]  0.0184855973  0.0198041464 -0.0228674448 -0.0056077506  0.0365888458 -0.0298717985\
+ [43]  0.0836607608  0.0117072184  0.0368409886  0.0178403849 -0.0224269837 -0.0229619368\
+ [49] -0.0603772012 -0.0159917266 -0.0375914511 -0.0413769262  0.0376191772 -0.0523663286\
+ [55]  0.0454486810 -0.0470021254 -0.0389701061 -0.0306916370 -0.0406593888  0.0566458861\
+ [61] -0.0315375533 -0.0081016361 -0.0508829426 -0.0397695088  0.0357405924 -0.0496090995\
+ [67] -0.0033382015 -0.0391553165  0.0044275214  0.0287476203 -0.0269209662  0.0098617770\
+ [73]  0.0222529012 -0.0368365851 -0.0001912283  0.0097794593 -0.0252799719 -0.0542282684\
+ [79] -0.0144066413 -0.0501148132  0.0648449295 -0.0164327243 -0.0208865358 -0.0161624729\
+ [85] -0.0218812733  0.0180327108 -0.0450311667  0.0976408943  0.0460077367 -0.0302598778\
+ [91]  0.0563902332  0.1252626261  0.1118441922  0.0468860778 -0.0239305777  0.0280377849\
+ [97]  0.0055210730 -0.0510820813 -0.0187156509 -0.0124808124\
+\
+\cb3 > head(cont_matrix)\cb1 \
+          Contrasts\
+Levels     AvB_1 AvB_2\
+  A.treat1     1     0\
+  A.treat2     0     1\
+  A.treat3     0     0\
+  A.treat4     0     0\
+  A.treat5     0     0\
+  B.treat1    -1     0\
+\
+\cb3 > head(result_single)\cb1 \
+           AvB_1        AvB_2  AveExpr          F    P.Value adj.P.Val\
+g_1 -0.018200279 -0.016842926 13.28314 0.22598630 0.79784442 0.9496038\
+g_2  0.018965888 -0.078847099 13.27081 2.35087257 0.09677707 0.8631362\
+g_3 -0.028916958 -0.061109845 13.29662 1.69314331 0.18543161 0.8631362\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \cb2 # Double voom\cb1 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+\cf0 \cb3 corfit\cb1  is same\
+\
+\
+\
+\
+\
+\
+}

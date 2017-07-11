@@ -1,5 +1,5 @@
 ---
-title: "Limma Tutorial - Day extraneous variable"
+title: "Limma Extraneous variables with LPCM"
 author: Lindsay Rutter
 output:
   packagedocs::package_docs:

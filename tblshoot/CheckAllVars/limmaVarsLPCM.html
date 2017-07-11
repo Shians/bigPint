@@ -7,7 +7,7 @@
     <meta name="author" content="Lindsay Rutter" />
   
   
-  <title>Limma Tutorial - Day extraneous variable</title>
+  <title>Limma Extraneous variables with LPCM</title>
 
     <script src="limmaVarsLPCM_files/jquery-1.11.3/jquery.min.js"></script>
   <link href="limmaVarsLPCM_files/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
@@ -46,7 +46,7 @@
           <span class="icon-bar"></span>
         </button>
                 <a href="index.html" class="navbar-brand page-scroll">
-        Limma Tutorial - Day extraneous variable
+        Limma Extraneous variables with LPCM
         </a>
       </div>
           </div>
@@ -101,7 +101,7 @@ x &lt;- calcNormFactors(x, method = &quot;TMM&quot;)
 lcpm &lt;- cpm(x, log=TRUE)</code></pre>
 <p>Make boxplot</p>
 <pre class="r"><code>ggparcoord(data.frame(lcpm), columns=1:48, alphaLines=0, boxplot=TRUE, scale=&quot;globalminmax&quot;) + coord_flip()</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-32-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
 <p>Create MDS plots</p>
 <pre class="r"><code>library(RColorBrewer)
 col.group &lt;- x$samples$group
@@ -148,34 +148,34 @@ levels(col.rin) &lt;-  brewer.pal(nlevels(col.rin), &quot;Set1&quot;)
 col.rin &lt;- as.character(col.rin)</code></pre>
 <p>Group LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.group)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-34-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
 <p>Virus LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.virus)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-35-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
 <p>Diet LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.diet)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-36-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-8-1.png" width="960" /></p>
 <p>Lane LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.lane)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-37-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-9-1.png" width="960" /></p>
 <p>Day LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.day)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-38-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-10-1.png" width="960" /></p>
 <p>Mortality LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.mortality)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-39-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-11-1.png" width="960" /></p>
 <p>SBV LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.sbv)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-40-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-12-1.png" width="960" /></p>
 <p>IAPV LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.iapv)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-41-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-13-1.png" width="960" /></p>
 <p>RNAConc LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.rnaConc)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-42-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-14-1.png" width="960" /></p>
 <p>RIN LCPM</p>
 <pre class="r"><code>plotMDS(lcpm, labels=colnames(lcpm), col=col.rin)</code></pre>
-<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-43-1.png" width="960" /></p>
+<p><img src="limmaVarsLPCM_files/figure-html/unnamed-chunk-15-1.png" width="960" /></p>
 <p>Make interactive plots for all variables in LCPM</p>
 <pre class="r"><code>glMDSPlot(lcpm, labels=paste(x$samples$group, x$samples$virus, x$samples$diet, x$samples$lane, x$samples$day, x$samples$mortality, x$samples$sbv, x$samples$iapv, x$samples$rnaConc, x$samples$rin, colnames(lcpm), sep=&quot;_&quot;), groups=x$samples[,c(1,c(4:12))], launch=FALSE, folder = &quot;glimmaPlotsLPCM&quot;, html = &quot;glimmaPlotsLPCM&quot;)</code></pre>
 
