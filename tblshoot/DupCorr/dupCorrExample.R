@@ -1,6 +1,8 @@
 library("limma")
 library("edgeR")
 
+# https://support.bioconductor.org/p/59700/
+
 # Simulate data
 set.seed(123)
 counts <- matrix(rpois(9000, lambda = 500), ncol = 90)

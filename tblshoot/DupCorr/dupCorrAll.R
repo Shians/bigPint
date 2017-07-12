@@ -7,9 +7,10 @@ library(DESeq2)
 
 # # https://support.bioconductor.org/p/59700/
 
-# This script creates three files - blockDEG, blockCorrPairs, and blockOverallCorr. The blockDEG represents the number of DEGs that remain in all 28 pairs when a given possible confounding variable is blocked. The blockOverallCorr represents what is returned by duplicateCorrelation (corfit$consensus) for all 28 pairs. The blockCorrPairs gives the correlation between p-values for all genes between the unblocked model and the model where a given extraneous variable is blocked.
+# This script is different than dupCorr.R, because I now try to block on all extraneous variable at once, rather than individually.
 
-# Note: IAPV extraneous variable returned NANs
+# Note: Stopped running this script because if tried to put >1 block factors, just got all NAs
+# ex. corfit <- duplicateCorrelation(v, design, block = c(x$samples$mortality, x$samples$day))
 
 rm(list=ls())
 thisPath <- "/Users/lindz/bigPint"
@@ -70,7 +71,7 @@ doCorr <- function(variable){
   y <- DGEList(counts)
   y <- calcNormFactors(y, method = "TMM")
   v <- voom(y, design)
-  corfit <- duplicateCorrelation(v, design, block = x$samples[[variable]])
+  corfit <- duplicateCorrelation(v, design, block = c(x$samples$lane, x$samples$day))
   v <- voom(y, design, block = x$samples[[variable]], correlation = corfit$consensus)
   fit <- lmFit(v, design, block = x$samples[[variable]], correlation = corfit$consensus)
   fit2 <- contrasts.fit(fit, cont_matrix)
