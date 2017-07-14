@@ -5,7 +5,7 @@ library(ggplot2)
 library(edgeR)
 library(DESeq2)
 
-# # https://support.bioconductor.org/p/59700/
+# https://support.bioconductor.org/p/59700/
 
 # This script creates three files - blockDEG, blockCorrPairs, and blockOverallCorr. The blockDEG represents the number of DEGs that remain in all 28 pairs when a given possible confounding variable is blocked. The blockOverallCorr represents what is returned by duplicateCorrelation (corfit$consensus) for all 28 pairs. The blockCorrPairs gives the correlation between p-values for all genes between the unblocked model and the model where a given extraneous variable is blocked.
 
@@ -65,8 +65,8 @@ for (i in 1:length(pairNames)) {
   genePval0[[ pairNames[i] ]] <- temp$adj.P.Val
 }
 
+################# Double voom (voom runs twice)
 doCorr <- function(variable){
-  ################# Double voom (voom runs twice)
   y <- DGEList(counts)
   y <- calcNormFactors(y, method = "TMM")
   v <- voom(y, design)

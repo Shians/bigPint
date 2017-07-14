@@ -7,9 +7,6 @@ library(data.table)
 library(ggplot2)
 library(limma)
 library(Glimma)
-library(edgeR)
-
-rm(list=ls())
 
 outDir = "/Users/lindz/bigPint/tblshoot/CheckReps"
 
@@ -28,7 +25,7 @@ my_fn <- function(data, mapping, ...){
 dds <- readRDS("/Users/lindz/bigPint/tblshoot/AllPairs/data_limma.Rds")
 
 # Change group1 and group2 as needed
-group1 ="VC"
+group1 ="VS"
 
 sampleIndex <- which(sapply(colnames(dds[[1]]), function(x) unlist(strsplit(x,"[.]"))[1]) %in% group1)
 
@@ -38,14 +35,8 @@ colnames(bindataSel)[1] <- "ID"
 bindataSel$ID <- as.character(bindataSel$ID)
 bindataSel <- as.data.frame(bindataSel)
 
-x <- DGEList(counts=bindataSel[,2:ncol(bindataSel)])
-bindataSelX <- rlog(x[[1]])
-
 # Take logs
-bindataSelX <- as.data.frame(bindataSelX)
-bindataSelX$ID <- bindataSel$ID
-bindataSelX2 <- bindataSelX[,c(7,1,2,3,4,5,6)]
-bindataSel <- bindataSelX2
+bindataSel[,2:ncol(bindataSel)] <- log(bindataSel[,2:ncol(bindataSel)]+1)
 
 maxVal = max(bindataSel[,-1])
 minVal = min(bindataSel[,-1])
@@ -53,7 +44,7 @@ maxRange = c(minVal, maxVal)
 xbins=10
 buffer = maxRange[2]/xbins
 p <- ggpairs(bindataSel[,-1], lower = list(continuous = my_fn)) + theme(strip.text = element_text(size = 20))
-jpeg(filename=paste0(outDir, "/", group1, "_rlog_", xbins, ".jpg"), height=1400, width=1400)
+jpeg(filename=paste0(outDir, "/", group1, "_log_", xbins, ".jpg"), height=1400, width=1400)
 print(p)
 dev.off()
 
