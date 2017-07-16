@@ -7,7 +7,7 @@
     <meta name="author" content="Lindsay Rutter" />
   
   
-  <title>Examine extraneous variables in boxplots by group</title>
+  <title>Examining extraneous variables by group</title>
 
     <script src="variablePictures_files/jquery-1.11.3/jquery.min.js"></script>
   <link href="variablePictures_files/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" />
@@ -46,7 +46,7 @@
           <span class="icon-bar"></span>
         </button>
                 <a href="index.html" class="navbar-brand page-scroll">
-        Examine extraneous variables in boxplots by group
+        Examining extraneous variables by group
         </a>
       </div>
           </div>
@@ -71,6 +71,8 @@ thisPath &lt;- &quot;/Users/lindz/bigPint&quot;
 beeCounts &lt;- read.delim(file=paste0(thisPath, &quot;/AllLaneCount.txt&quot;), row.names=1, stringsAsFactors = FALSE)
 colnames(beeCounts) &lt;- c(&quot;NC.1&quot;, &quot;NC.2&quot;, &quot;NR.1&quot;, &quot;VR.1&quot;, &quot;NS.1&quot;, &quot;VP.1&quot;, &quot;NS.2&quot;, &quot;VR.2&quot;, &quot;NP.1&quot;, &quot;VP.2&quot;, &quot;VC.1&quot;, &quot;NP.2&quot;, &quot;VP.3&quot;, &quot;NP.3&quot;, &quot;VS.1&quot;, &quot;VS.2&quot;, &quot;VC.2&quot;, &quot;NC.3&quot;, &quot;VP.4&quot;, &quot;NC.4&quot;, &quot;NR.2&quot;, &quot;VC.3&quot;, &quot;VC.4&quot;, &quot;NP.4&quot;, &quot;VR.3&quot;, &quot;NC.5&quot;, &quot;VS.3&quot;, &quot;NP.5&quot;, &quot;VC.5&quot;, &quot;VS.4&quot;, &quot;NS.3&quot;, &quot;VS.5&quot;, &quot;VP.5&quot;, &quot;NR.3&quot;, &quot;NR.4&quot;, &quot;VC.6&quot;, &quot;NS.4&quot;, &quot;NC.6&quot;, &quot;NP.6&quot;, &quot;VR.4&quot;, &quot;NR.5&quot;, &quot;NR.6&quot;, &quot;NS.5&quot;, &quot;VP.6&quot;, &quot;NS.6&quot;, &quot;VR.5&quot;, &quot;VR.6&quot;, &quot;VS.6&quot;)
 beeCounts &lt;- beeCounts[ , order(names(beeCounts))]
+# beeCounts &lt;- beeCounts[ , order(c(paste0(rep(&quot;NP&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;NC&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;NR&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;NS&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;VP&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;VC&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;VR&quot;,6),&quot;.&quot;,1:6), paste0(rep(&quot;VS&quot;,6),&quot;.&quot;,1:6)))]
+
 x &lt;- DGEList(counts=beeCounts)
 
 exVars &lt;- read.csv(&quot;/Users/lindz/bigPint/tblshoot/CheckAllVars/extraVarClean.csv&quot;)
@@ -85,26 +87,18 @@ x$samples$sbv &lt;- exVars$SBV
 x$samples$iapv &lt;- exVars$IAPV
 x$samples$rnaConc &lt;- exVars$rnaConc
 x$samples$rin &lt;- exVars$RIN</code></pre>
-<pre class="r"><code>mortalityDF &lt;- x$samples %&gt;% group_by(group) %&gt;% summarize(mean = mean(mortality), sd = sd(mortality))
+<pre class="r"><code>x$samples$group &lt;- factor(x$samples$group, levels = c(&quot;NP&quot;, &quot;NC&quot;, &quot;NR&quot;, &quot;NS&quot;, &quot;VP&quot;, &quot;VC&quot;, &quot;VR&quot;, &quot;VS&quot;), ordered = TRUE)
 
-ggplot(mortalityDF, aes(x=group, y=mean, fill=group)) + geom_bar(position=position_dodge(), stat=&quot;identity&quot;, colour=&quot;black&quot;, size=.3) + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.3, width=.2, position=position_dodge(.9)) + ggtitle(&quot;Mortality&quot;)</code></pre>
-<p><img src="variablePictures_files/figure-html/unnamed-chunk-51-1.png" width="960" /></p>
-<pre class="r"><code>sbvDF &lt;- x$samples %&gt;% group_by(group) %&gt;% summarize(mean = mean(sbv), sd = sd(sbv))
-
-ggplot(sbvDF, aes(x=group, y=mean, fill=group)) + geom_bar(position=position_dodge(), stat=&quot;identity&quot;, colour=&quot;black&quot;, size=.3) + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.3, width=.2, position=position_dodge(.9)) + ggtitle(&quot;SBV&quot;)</code></pre>
-<p><img src="variablePictures_files/figure-html/unnamed-chunk-52-1.png" width="960" /></p>
-<pre class="r"><code>iapvDF &lt;- x$samples %&gt;% group_by(group) %&gt;% summarize(mean = mean(iapv), sd = sd(iapv))
-
-ggplot(iapvDF, aes(x=group, y=mean, fill=group)) + geom_bar(position=position_dodge(), stat=&quot;identity&quot;, colour=&quot;black&quot;, size=.3) + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.3, width=.2, position=position_dodge(.9)) + ggtitle(&quot;IAPV&quot;)</code></pre>
-<p><img src="variablePictures_files/figure-html/unnamed-chunk-53-1.png" width="960" /></p>
-<pre class="r"><code>rnaConcDF &lt;- x$samples %&gt;% group_by(group) %&gt;% summarize(mean = mean(rnaConc), sd = sd(rnaConc))
-
-ggplot(rnaConcDF, aes(x=group, y=mean, fill=group)) + geom_bar(position=position_dodge(), stat=&quot;identity&quot;, colour=&quot;black&quot;, size=.3) + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.3, width=.2, position=position_dodge(.9)) + ggtitle(&quot;RNA Concentration&quot;)</code></pre>
-<p><img src="variablePictures_files/figure-html/unnamed-chunk-54-1.png" width="960" /></p>
-<pre class="r"><code>rinDF &lt;- x$samples %&gt;% group_by(group) %&gt;% summarize(mean = mean(rin), sd = sd(rin))
-
-ggplot(rinDF, aes(x=group, y=mean, fill=group)) + geom_bar(position=position_dodge(), stat=&quot;identity&quot;, colour=&quot;black&quot;, size=.3) + geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), size=.3, width=.2, position=position_dodge(.9)) + ggtitle(&quot;RIN&quot;)</code></pre>
-<p><img src="variablePictures_files/figure-html/unnamed-chunk-55-1.png" width="960" /></p>
+ggplot(x$samples, aes(x=group, y=mortality)) + geom_boxplot(aes(fill=group)) + geom_point()</code></pre>
+<p><img src="variablePictures_files/figure-html/unnamed-chunk-2-1.png" width="960" /></p>
+<pre class="r"><code>ggplot(x$samples, aes(x=group, y=sbv)) + geom_boxplot(aes(fill=group)) + geom_point()</code></pre>
+<p><img src="variablePictures_files/figure-html/unnamed-chunk-3-1.png" width="960" /></p>
+<pre class="r"><code>ggplot(x$samples, aes(x=group, y=iapv)) + geom_boxplot(aes(fill=group)) + geom_point()</code></pre>
+<p><img src="variablePictures_files/figure-html/unnamed-chunk-4-1.png" width="960" /></p>
+<pre class="r"><code>ggplot(x$samples, aes(x=group, y=rnaConc)) + geom_boxplot(aes(fill=group)) + geom_point()</code></pre>
+<p><img src="variablePictures_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<pre class="r"><code>ggplot(x$samples, aes(x=group, y=rin)) + geom_boxplot(aes(fill=group)) + geom_point()</code></pre>
+<p><img src="variablePictures_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
 
 
       </div>

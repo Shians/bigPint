@@ -6,16 +6,21 @@ library(htmlwidgets)
 library(dplyr)
 library(tidyr)
 library(data.table)
+library(DESeq2)
 
-load("/Users/lindz/RNASeqVisualization/data/bindataL120.Rda")
-dat <- bindata
-rm(bindata)
+dat <- readRDS("RLogDat.Rds")
 datCol <- colnames(dat)[-which(colnames(dat) %in% "ID")]
+
 myPairs <- unique(sapply(datCol, function(x) unlist(strsplit(x,"[.]"))[1]))
-load("/Users/lindz/RNASeqVisualization/data/metrics.Rda")
-metrics[[1]] <- metrics[[1]][which(metrics[[1]]$PValue<0.01),]
-metrics[[1]] <- metrics[[1]][which(metrics[[1]]$ID %in% dat$ID),]
-dat = dat[which(dat$ID %in% metrics[[1]]$ID),]
+metrics <- readRDS("topGenes_limma.Rds")
+for (i in 1:(length(myPairs)-1)){
+  for (j in (i+1):length(myPairs)){
+    setDT(metrics[[paste0(myPairs[i],"vs",myPairs[j])]], keep.rownames = TRUE)[]
+    colnames(metrics[[paste0(myPairs[i],"vs",myPairs[j])]])[1] <- "ID"
+    metrics[[paste0(myPairs[i],"vs",myPairs[j])]]$ID <- as.factor(metrics[[paste0(myPairs[i],"vs",myPairs[j])]]$ID)
+    metrics[[paste0(myPairs[i],"vs",myPairs[j])]] <- as.data.frame(metrics[[paste0(myPairs[i],"vs",myPairs[j])]])
+  }
+}
 myMetrics <- colnames(metrics[[1]])[-which(colnames(metrics[[1]]) %in% "ID")]
 values <- reactiveValues(x=0, selPair=NULL, selMetric=NULL, selOrder=NULL)
 
@@ -154,7 +159,7 @@ shinyServer(function(input, output, session){
     })
     
     BP <- reactive(ggplot(boxDat(), aes(x = Sample, y = Count)) + geom_boxplot())
-    ggBP <- reactive(ggplotly(BP(), width=600) %>% config(displayModeBar = F, staticPlot = T))
+    ggBP <- reactive(ggplotly(BP(), width=600, height = 400) %>% config(displayModeBar = F, staticPlot = T))
     
     observe({
       session$sendCustomMessage(type = "lines", currGene())

@@ -31,3 +31,8 @@ GenomicAlignments
 ShortRead
 EDASeq
 rmarkdown
+matrixStats
+DelayedArray
+hwriter
+R.methodsS3
+R.oo

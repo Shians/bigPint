@@ -1,5 +1,5 @@
 ---
-title: "Examine extraneous variables in boxplots by group"
+title: "Examining extraneous variables by group"
 author: Lindsay Rutter
 output:
   packagedocs::package_docs:
