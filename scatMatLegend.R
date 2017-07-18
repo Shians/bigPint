@@ -2,13 +2,12 @@ library(plotly)
 library(shiny)
 library(ggplot2)
 library(hexbin)
-library(scales)
+library(RColorBrewer)
 
 #rm(list=ls())
 
 set.seed(1)
-dat <- data.frame(ID = paste0("ID", 1:1010), A.1 = c(rep(0.5, 1000), abs(rnorm(10))), A.2 = c(rep(0.5, 1000), abs(rnorm(10))), B.1 = c(rep(0.5, 1000), abs(rnorm(10))), B.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.1 = c(rep(0.5, 1000), abs(rnorm(10))), C.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.3 = c(rep(0.5, 1000), abs(rnorm(10))), stringsAsFactors = FALSE
-)
+#dat <- data.frame(ID = paste0("ID", 1:1010), A.1 = c(rep(0.5, 1000), abs(rnorm(10))), A.2 = c(rep(0.5, 1000), abs(rnorm(10))), B.1 = c(rep(0.5, 1000), abs(rnorm(10))), B.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.1 = c(rep(0.5, 1000), abs(rnorm(10))), C.2 = c(rep(0.5, 1000), abs(rnorm(10))), C.3 = c(rep(0.5, 1000), abs(rnorm(10))), stringsAsFactors = FALSE
 
 dat <- data.frame(ID = paste0("ID", 1:10000), A.1 = abs(rnorm(10000)), A.2 = abs(rnorm(10)), B.1 = abs(rnorm(10000)), B.2 = abs(rnorm(10000)), C.1 = abs(rnorm(10000)), C.2 = abs(rnorm(10000)), stringsAsFactors = FALSE)
 
@@ -20,7 +19,7 @@ sampleIndex2 <- which(sapply(colnames(datSel), function(x) unlist(strsplit(x,"[.
 minVal = min(datSel[,-1])
 maxVal = max(datSel[,-1])
 maxRange = c(minVal, maxVal)
-xbins= 10
+xbins= 40
 buffer = (maxRange[2]-maxRange[1])/(xbins/2)
 x <- c()
 y <- c()
@@ -37,12 +36,25 @@ attr(hexdf, "cID") <- h@cID
 
 my_breaks = c(2, 4, 6, 8, 20, 1000)
 
-p <- ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = boxcox_trans(p=0.1), breaks = my_breaks, labels = my_breaks, guide="legend")
+clrs <- brewer.pal(length(my_breaks)+1, "Blues")
+hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=clrs)
 
-p2 <- ggplot(hexdf, aes(x=x, y=y, fill = counts, hexID=hexID)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_gradient(name = "count", trans = "log", breaks = my_breaks, labels = my_breaks, guide="legend")
+#ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1) + scale_fill_manual(values=levels(hexdf$countColor))
 
-p2
+ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + scale_fill_manual(values=levels(hexdf$countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
 
+
+
+
+
+
+######################
+
+library(RColorBrewer)
+library(ggplot2)
+clrs <- brewer.pal(8, "Blues")
+ggplot(d, aes(x=x, y=y, colour=z)) + geom_point(size=5)
+ggplot(d, aes(x=x, y=y, colour=factor(z))) + geom_point(size=5) + scale_colour_manual(values=c("2"=clrs[8], "4"=clrs[7], "8"=clrs[6],"16"=clrs[5], "32"=clrs[4], "64"=clrs[3], "128"=clrs[2], "1024"=clrs[1]))
 
 
 
@@ -86,15 +98,15 @@ colfunc <- colorRampPalette(c("black", "white"))
 colfunc(length(my_breaks))
 getBreakVal <- function(my_breaks, vector){
   for (i in 1:length(vector)){
-    
+
   }
 }
 
-vector <- c(2:20,50,100,900,1000)
+vector <- c(2,20,50,100,900,1000)
 
 # scale_fill_identity (set column with hex Colors)
-hexdf$scaleColor <- 
-  
+hexdf$scaleColor <-
+
 
 
 
