@@ -19,7 +19,7 @@ sampleIndex2 <- which(sapply(colnames(datSel), function(x) unlist(strsplit(x,"[.
 minVal = min(datSel[,-1])
 maxVal = max(datSel[,-1])
 maxRange = c(minVal, maxVal)
-xbins= 40
+xbins= 20
 buffer = (maxRange[2]-maxRange[1])/(xbins/2)
 x <- c()
 y <- c()
@@ -40,7 +40,16 @@ clrs <- brewer.pal(length(my_breaks)+3, "Blues")
 clrs <- clrs[3:length(clrs)]
 hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=rev(clrs))
 
-ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + scale_fill_manual(values=levels(hexdf$countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+# No problem
+ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=counts)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+# Problem
+ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + scale_fill_manual(values = levels(hexdf$countColor)) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+
+ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + scale_fill_distiller(fill=counts) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+
 
 
 
