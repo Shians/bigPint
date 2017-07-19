@@ -38,7 +38,7 @@ my_breaks = c(2, 4, 6, 8, 20, 1000)
 
 clrs <- brewer.pal(length(my_breaks)+3, "Blues")
 clrs <- clrs[3:length(clrs)]
-hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=as.character(c(0, my_breaks)))
+hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=as.character(c(0, my_breaks)), include.lowest=TRUE, right=FALSE)
 
 # No problem (but not colored into breaks)
 # ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
