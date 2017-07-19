@@ -19,7 +19,7 @@ sampleIndex2 <- which(sapply(colnames(datSel), function(x) unlist(strsplit(x,"[.
 minVal = min(datSel[,-1])
 maxVal = max(datSel[,-1])
 maxRange = c(minVal, maxVal)
-xbins= 20
+xbins= 8
 buffer = (maxRange[2]-maxRange[1])/(xbins/2)
 x <- c()
 y <- c()
@@ -38,21 +38,33 @@ my_breaks = c(2, 4, 6, 8, 20, 1000)
 
 clrs <- brewer.pal(length(my_breaks)+3, "Blues")
 clrs <- clrs[3:length(clrs)]
-hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=rev(clrs))
+hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=as.character(c(0, my_breaks)))
 
-# No problem
-ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=counts)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+# No problem (but not colored into breaks)
+# ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
 
-# Problem
-ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + scale_fill_manual(values = levels(hexdf$countColor)) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+# Legend shows the wrong label counts
+p <- ggplot(hexdf, aes(x=x, y=y, hexID=hexID, counts=counts, fill=countColor)) + geom_hex(stat="identity") + scale_fill_manual(labels = as.character(c(0, my_breaks)), values = rev(clrs)) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+# Legend counts are not labelled correctly (but does not do >=, just >)
+ggplotly(p)
+
+######################
+
+Service <- c("Satisfied", "Dissatisfied", "Neutral", "Satisfied", "Neutral")
+Service2 <- c("Dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Satisfied")
+
+Services <- data.frame(Service, Service2)
+
+ServicesProp <- Services %>% select(Service) %>% group_by(Service) %>% 
+  summarise(count=n()) %>% mutate(percent = count / sum(count))
+
+p <- ggplot(ServicesProp, aes(x = Service, y = percent, fill = Service)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values = c("red", "grey", "seagreen3"))
 
 
-ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + scale_fill_distiller(fill=counts) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
-
-
-
-
-
+# scale_fill_distiller and setting fill = counts (SO suggestion)
 
 
 
