@@ -44,7 +44,7 @@ hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=as.cha
 # ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
 
 # Legend shows the wrong label counts
-p <- ggplot(hexdf, aes(x=x, y=y, hexID=hexID, counts=counts, fill=countColor)) + geom_hex(stat="identity") + scale_fill_manual(labels = as.character(c(0, my_breaks)), values = rev(clrs)) + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+p <- ggplot(hexdf, aes(x=x, y=y, hexID=hexID, counts=counts, fill=countColor)) + geom_hex(stat="identity") + scale_fill_manual(labels = as.character(c(0, my_breaks)), values = rev(clrs), name = "Count") + geom_abline(intercept = 0, color = "red", size = 0.25) + labs(x = "A", y = "C") + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
 
 # Legend counts are not labelled correctly (but does not do >=, just >)
 ggplotly(p)

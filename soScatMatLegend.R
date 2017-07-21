@@ -18,4 +18,9 @@ my_breaks = c(2, 4, 6, 8, 20, 1000)
 clrs <- brewer.pal(length(my_breaks)+3, "Blues")
 clrs <- clrs[3:length(clrs)]
 hexdf$countColor <- cut(hexdf$counts, breaks=c(0, my_breaks, Inf), labels=rev(clrs))
-ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + scale_fill_manual(values=levels(hexdf$countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+p1 <- ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + scale_fill_manual(values=levels(hexdf$countColor)) + geom_hex(stat="identity") + geom_abline(intercept = 0, color = "red", size = 0.25) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
+# Starts to break apart
+p <- ggplot(hexdf, aes(x=x, y=y, hexID=hexID, fill=countColor)) + scale_fill_manual(values=levels(hexdf$countColor)) + stat_binhex(bins=15) + geom_abline(intercept = 0, color = "red", size = 0.25) + coord_fixed(xlim = c(-0.5, (maxRange[2]+buffer)), ylim = c(-0.5, (maxRange[2]+buffer))) + theme(aspect.ratio=1)
+
